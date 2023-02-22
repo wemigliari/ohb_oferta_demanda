@@ -9,295 +9,358 @@ library(purrr)
 library(lubridate)
 
 ###################################
-####### Oferta Fotocasa 2020
+####### Oferta Habitaclia 2019
 ###################################
-
+catalunya_noms <- read.xlsx("/Volumes/OHB/04.Laboratoris/LAB201703-Lloguer/04.Dades/Joffre_Wellington/Catalunya_noms_oficials.xlsx",
+                            sheetName = "Sheet1")
 #To disable the scientific notation in R, pass the following argument: 
+
 options(scipen=999)
 options(digits=2)
 
-catalunya_noms <- read.xlsx("/Users/wemigliari/Documents/Pós-Doutorado & Doutorado/Pós-Doc/Observatori_Metropolita/Dades/Catalunya_noms_oficials.xlsx",
-                            sheetName = "Sheet1")
+habit_ofer_2019 <- h_19
+habit_ofer_2019$province <- NULL
+habit_ofer_2019$region <- NULL
+habit_ofer_2019$area <- NULL
+habit_ofer_2019$zone <- NULL
 
-#habit_oferta_2019 <- read.csv("/Users/wemigliari/Documents/Pós-Doutorado & Doutorado/Pós-Doc/Observatori_Metropolita/Dades/2019_Habitaclia_oferta/extraccions_habit_oferta_2019.csv
+habit_ofer_2019$NOMMUNI <- habit_ofer_2019$municipality
 
-h_19 <- habit_oferta_2019 
-habit_oferta_2019$NOMMUNI <- habit_oferta_2019$municipality
-habit_oferta_2019 <- habit_oferta_2019[order(as.Date(habit_oferta_2019$date)),]
-
-#habit_oferta_2019 <- habit_oferta_2019[,c(2:19)]
-
-habit_oferta_2019 <- habit_oferta_2019 %>%
+habit_ofer_2019 <- habit_ofer_2019 %>%
   mutate_if(is.character, str_trim)
 
-habit_oferta_2019$property_id <- as.character(habit_oferta_2019$property_id)
-
-##########################################
-##### Adding NOMMUNI, CODIMUNI & Cleaning
-################################
-habit_oferta_2019$NOMMUNI<-gsub(" Capital","",as.character(habit_oferta_2019$NOMMUNI))
-habit_oferta_2019$NOMMUNI<-gsub(" Barcelona","Barcelona",as.character(habit_oferta_2019$NOMMUNI))
-habit_oferta_2019$NOMMUNI<-gsub(" Girona","Girona",as.character(habit_oferta_2019$NOMMUNI))
-habit_oferta_2019$NOMMUNI<-gsub(" Lleida","Lleida",as.character(habit_oferta_2019$NOMMUNI))
-habit_oferta_2019$##########
-NOMMUNI<-gsub(" Tarragona","Tarragona",as.character(habit_oferta_2019$NOMMUNI))
-habit_oferta_2019$NOMMUNI[which(habit_oferta_2019$NOMMUNI==" Capital")] <- ""
-habit_oferta_2019$NOMMUNI[which(habit_oferta_2019$NOMMUNI==" Barcelona")] <- "Barcelona"
-habit_oferta_2019$NOMMUNI[which(habit_oferta_2019$NOMMUNI==" Girona")] <- "Girona"
-habit_oferta_2019$NOMMUNI[which(habit_oferta_2019$NOMMUNI==" Lleida")] <- "Lleida"
-habit_oferta_2019$NOMMUNI[which(habit_oferta_2019$NOMMUNI==" Tarragona")] <- "Tarragona"
-habit_oferta_2019$NOMMUNI[which(habit_oferta_2019$NOMMUNI=="Hospitalet de Llobregat (L´)")] <- "l'Hospitalet de Llobregat"
-habit_oferta_2019$NOMMUNI[which(habit_oferta_2019$NOMMUNI=="Ametlla de Mar (L´)")] <- "l'Ametlla de Mar"
-habit_oferta_2019$NOMMUNI[which(habit_oferta_2019$NOMMUNI=="Escala (L´)")] <- "l'Escala"
-habit_oferta_2019$NOMMUNI[which(habit_oferta_2019$NOMMUNI=="Ametlla del Vallès (L´)")] <- "l'Ametlla del Vallès"
-habit_oferta_2019$NOMMUNI[which(habit_oferta_2019$NOMMUNI=="Ampolla (L´)")] <- "l'Ampolla"
-habit_oferta_2019$NOMMUNI[which(habit_oferta_2019$NOMMUNI=="Arboç (L´)")] <- "l'Arboç"
-habit_oferta_2019$NOMMUNI[which(habit_oferta_2019$NOMMUNI=="Aldea (L´)")] <- "l'Aldea"
-habit_oferta_2019$NOMMUNI[which(habit_oferta_2019$NOMMUNI=="Espluga de Francolí (L´)")] <- "l'Espluga de Francolí"
-habit_oferta_2019$NOMMUNI[which(habit_oferta_2019$NOMMUNI=="Armentera (L´)")] <- "l'Armentera"
-habit_oferta_2019$NOMMUNI[which(habit_oferta_2019$NOMMUNI=="Espluga Calba (L´)")] <- "l'Espluga Calba"
-habit_oferta_2019$NOMMUNI[which(habit_oferta_2019$NOMMUNI=="Estany (L´)")] <- "l'Estany"
-habit_oferta_2019$NOMMUNI[which(habit_oferta_2019$NOMMUNI=="Albiol (L´)")] <- "l'Albiol"
-habit_oferta_2019$NOMMUNI[which(habit_oferta_2019$NOMMUNI=="Bruc (El)")] <- "el Bruc"
-habit_oferta_2019$NOMMUNI[which(habit_oferta_2019$NOMMUNI=="Brull (El)")] <- "el Brull"
-habit_oferta_2019$NOMMUNI[which(habit_oferta_2019$NOMMUNI=="Vendrell (El)")] <- "el Vendrel"
-
-habit_oferta_2019$NOMMUNI[which(habit_oferta_2019$NOMMUNI=="Masnou (El)")] <- "el Masnou"
-habit_oferta_2019$NOMMUNI[which(habit_oferta_2019$NOMMUNI=="Morell (El)")] <- "el Morell"
-habit_oferta_2019$NOMMUNI[which(habit_oferta_2019$NOMMUNI=="Pont de Suert (El)")] <- "el Pont de Suert"
-habit_oferta_2019$NOMMUNI[which(habit_oferta_2019$NOMMUNI=="Prat de Llobregat (El)")] <- "el Prat de Llobregat"
-habit_oferta_2019$NOMMUNI[which(habit_oferta_2019$NOMMUNI=="Montmell (El)")] <- "el Montmell"
-habit_oferta_2019$NOMMUNI[which(habit_oferta_2019$NOMMUNI=="Pla de Santa Maria (El)")] <- "el Pla de Santa Maria"
-habit_oferta_2019$NOMMUNI[which(habit_oferta_2019$NOMMUNI=="Papiol (El)")] <- "el Papiol"
-habit_oferta_2019$NOMMUNI[which(habit_oferta_2019$NOMMUNI=="Poal (El)")] <- "el Poal"
-habit_oferta_2019$NOMMUNI[which(habit_oferta_2019$NOMMUNI=="Catllar (El)")] <- "el Catllar"
-habit_oferta_2019$NOMMUNI[which(habit_oferta_2019$NOMMUNI=="Pont de Vilomara i Rocafort (El)")] <- "el Pont de Vilomara i Rocafort"
-habit_oferta_2019$NOMMUNI[which(habit_oferta_2019$NOMMUNI=="Port de la Selva (El)")] <- "el Port de la Selva"
-habit_oferta_2019$NOMMUNI[which(habit_oferta_2019$NOMMUNI=="Rourell (El)")] <- "el Rourell"
-habit_oferta_2019$NOMMUNI[which(habit_oferta_2019$NOMMUNI=="Pla del Penedès (El)")] <- "el Pla del Penedès"
-habit_oferta_2019$NOMMUNI[which(habit_oferta_2019$NOMMUNI=="Pont de Bar (El)")] <- "el Pont de Bar"
-habit_oferta_2019$NOMMUNI[which(habit_oferta_2019$NOMMUNI=="Far d´Empordà (El)")] <- "el Far d'Empordà"
-habit_oferta_2019$NOMMUNI[which(habit_oferta_2019$NOMMUNI=="Perelló (El)")] <- "el Perelló"
-habit_oferta_2019$NOMMUNI[which(habit_oferta_2019$NOMMUNI=="Pallaresos (Els)")] <- "els Pallaresos"
-habit_oferta_2019$NOMMUNI[which(habit_oferta_2019$NOMMUNI=="Alamús (Els)")] <- "els Alamús"
-habit_oferta_2019$NOMMUNI[which(habit_oferta_2019$NOMMUNI=="Prats de Rei (Els)")] <- "els Prats de Rei"
-habit_oferta_2019$NOMMUNI[which(habit_oferta_2019$NOMMUNI=="Hostalets de Pierola (Els)")] <- "els Hostalets de Pierola"
-
-
-habit_oferta_2019$NOMMUNI[which(habit_oferta_2019$NOMMUNI=="Riera de Gaià (La)")] <- "la Riera de Gaià"
-habit_oferta_2019$NOMMUNI[which(habit_oferta_2019$NOMMUNI=="Seu d´Urgell (La)")] <- "la Seu d'Urgell"
-habit_oferta_2019$NOMMUNI[which(habit_oferta_2019$NOMMUNI=="Roca del Vallès (La)")] <- "la Roca del Vallès"
-habit_oferta_2019$NOMMUNI[which(habit_oferta_2019$NOMMUNI=="Palma de Cervelló (La)")] <- "la Palma de Cervelló"
-habit_oferta_2019$NOMMUNI[which(habit_oferta_2019$NOMMUNI=="Garriga (La)")] <- "la Garriga"
-habit_oferta_2019$NOMMUNI[which(habit_oferta_2019$NOMMUNI=="Molina (La)")] <- "la Molina"
-habit_oferta_2019$NOMMUNI[which(habit_oferta_2019$NOMMUNI=="Jonquera (La)")] <- "la Jonquera"
-habit_oferta_2019$NOMMUNI[which(habit_oferta_2019$NOMMUNI=="Llagosta (La)")] <- "la Llagosta"
-habit_oferta_2019$NOMMUNI[which(habit_oferta_2019$NOMMUNI=="Pobla de Mafumet (La)")] <- "la Pobla de Mafumet"
-habit_oferta_2019$NOMMUNI[which(habit_oferta_2019$NOMMUNI=="Coma i la Pedra (La)")] <- "la Coma i la Pedra"
-habit_oferta_2019$NOMMUNI[which(habit_oferta_2019$NOMMUNI=="Pobla de Lillet (La)")] <- "la Pobla de Lillet"
-habit_oferta_2019$NOMMUNI[which(habit_oferta_2019$NOMMUNI=="Bisbal d´Empordà (La)")] <- "la Bisbal d'Empordà"
-habit_oferta_2019$NOMMUNI[which(habit_oferta_2019$NOMMUNI=="Tallada d´Empordà (La)")] <- "la Tallada d'Empordà"
-habit_oferta_2019$NOMMUNI[which(habit_oferta_2019$NOMMUNI=="Pobla de Claramunt (La)")] <- "la Pobla de Claramunt"
-habit_oferta_2019$NOMMUNI[which(habit_oferta_2019$NOMMUNI=="Morera de Montsant (La)")] <- "la Morera de Montsant"
-habit_oferta_2019$NOMMUNI[which(habit_oferta_2019$NOMMUNI=="Vall d´en Bas (La)")] <- "la Vall d'en Bas"
-habit_oferta_2019$NOMMUNI[which(habit_oferta_2019$NOMMUNI=="Llacuna (La)")] <- "la Hostalets de Pierola"
-habit_oferta_2019$NOMMUNI[which(habit_oferta_2019$NOMMUNI=="Pobla de Cérvoles (La)")] <- "la Pobla de Cérvoles"
-habit_oferta_2019$NOMMUNI[which(habit_oferta_2019$NOMMUNI=="Selva del Camp (La)")] <- "la Selva del Camp"
-habit_oferta_2019$NOMMUNI[which(habit_oferta_2019$NOMMUNI=="Cellera de Ter (La)")] <- "la Cellera de Ter"
-habit_oferta_2019$NOMMUNI[which(habit_oferta_2019$NOMMUNI=="Vall de Boí (La)")] <- "la Vall de Boí"
-habit_oferta_2019$NOMMUNI[which(habit_oferta_2019$NOMMUNI=="Granada (La)")] <- "la Granada"
-habit_oferta_2019$NOMMUNI[which(habit_oferta_2019$NOMMUNI=="Nou de Gaià (La)")] <- "la Nou de Gaià"
-habit_oferta_2019$NOMMUNI[which(habit_oferta_2019$NOMMUNI=="Riba (La)")] <- "la Riba"
-habit_oferta_2019$NOMMUNI[which(habit_oferta_2019$NOMMUNI=="Secuita (La)")] <- "la Secuita"
-habit_oferta_2019$NOMMUNI[which(habit_oferta_2019$NOMMUNI=="Portella (La)")] <- "la Portella"
-habit_oferta_2019$NOMMUNI[which(habit_oferta_2019$NOMMUNI=="Pobla de Montornès (La)")] <- "la Pobla de Montornès"
-habit_oferta_2019$NOMMUNI[which(habit_oferta_2019$NOMMUNI=="Galera (La)")] <- "la Galera"
-habit_oferta_2019$NOMMUNI[which(habit_oferta_2019$NOMMUNI=="Guingueta d´Àneu (La)")] <- "la Guingueta d'Àneu"
-habit_oferta_2019$NOMMUNI[which(habit_oferta_2019$NOMMUNI=="Pobla de Segur (La)")] <- "la Pobla de Segur"
-habit_oferta_2019$NOMMUNI[which(habit_oferta_2019$NOMMUNI=="Canonja (la) ")] <- "la Canonja"
-habit_oferta_2019$NOMMUNI[which(habit_oferta_2019$NOMMUNI=="Bisbal del Penedès (La)")] <- "la Bisbal del Penedès"
-habit_oferta_2019$NOMMUNI[which(habit_oferta_2019$NOMMUNI=="Torre de l´Espanyol (La)")] <- "la Torre de l'Espanyol"
-habit_oferta_2019$NOMMUNI[which(habit_oferta_2019$NOMMUNI=="Vall de Bianya (La)")] <- "la Vall de Bianya"
-habit_oferta_2019$NOMMUNI[which(habit_oferta_2019$NOMMUNI=="Sénia (La)")] <- "la Sénia"
-habit_oferta_2019$NOMMUNI[which(habit_oferta_2019$NOMMUNI=="Vajol (La)")] <- "la Vajol"
-habit_oferta_2019$NOMMUNI[which(habit_oferta_2019$NOMMUNI=="Torre de Cabdella (La)")] <- "la Torre de Cabdella"
-habit_oferta_2019$NOMMUNI[which(habit_oferta_2019$NOMMUNI=="Pera (La)")] <- "la Pera"
-habit_oferta_2019$NOMMUNI[which(habit_oferta_2019$NOMMUNI=="Sentiu de Sió (La)")] <- "la Sentiu"
-habit_oferta_2019$NOMMUNI[which(habit_oferta_2019$NOMMUNI=="Torre de Claramunt (La)")] <- "la Torre de Claramunt"
-habit_oferta_2019$NOMMUNI[which(habit_oferta_2019$NOMMUNI=="Baronia de Rialb (La)")] <- "la Baronia de Rialb"
-
-habit_oferta_2019$NOMMUNI[which(habit_oferta_2019$NOMMUNI=="Franqueses del Vallès (Les)")] <- "les Franqueses del Vallès"
-habit_oferta_2019$NOMMUNI[which(habit_oferta_2019$NOMMUNI=="Borges del Camp (Les)")] <- "les Borges del Camp"
-habit_oferta_2019$NOMMUNI[which(habit_oferta_2019$NOMMUNI=="Borges Blanques (Les)")] <- "les Borges Blanques"
-habit_oferta_2019$NOMMUNI[which(habit_oferta_2019$NOMMUNI=="Masies de Voltregà (Les)")] <- "les Masies de Voltregà"
-habit_oferta_2019$NOMMUNI[which(habit_oferta_2019$NOMMUNI=="Planes d´Hostoles (Les)")] <- "les Planes d'Hostoles"
-habit_oferta_2019$NOMMUNI[which(habit_oferta_2019$NOMMUNI=="Valls de Valira (Les)")] <- "les Valls de Valira"
-habit_oferta_2019$NOMMUNI[which(habit_oferta_2019$NOMMUNI=="Preses (Les)")] <- "les Preses"
-habit_oferta_2019$NOMMUNI[which(habit_oferta_2019$NOMMUNI=="Piles (Les)")] <- "les Piles"
-habit_oferta_2019$NOMMUNI[which(habit_oferta_2019$NOMMUNI=="Masies de Roda (Les)")] <- "les Masies de Roda"
-habit_oferta_2019$NOMMUNI[which(habit_oferta_2019$NOMMUNI=="Cabanyes (Les)")] <- "les Cabanyes"
-habit_oferta_2019$NOMMUNI[which(habit_oferta_2019$NOMMUNI=="Sant Carles de la Ràpita")] <- "la Ràpita"
-habit_oferta_2019$NOMMUNI<-gsub(" d´"," d'",as.character(habit_oferta_2019$NOMMUNI))
-habit_oferta_2019$NOMMUNI<-gsub(" n´"," n'",as.character(habit_oferta_2019$NOMMUNI))
-habit_oferta_2019$NOMMUNI<-gsub(" l´"," l'",as.character(habit_oferta_2019$NOMMUNI))
-habit_oferta_2019$NOMMUNI[which(habit_oferta_2019$NOMMUNI=="Coma-ruga")] <- "el Vendrell"
-
+habit_ofer_2019$property_id <- as.character(habit_ofer_2019$property_id)
 
 ############################################################
 ############ Adding month, date and trimester
 ############################################################
 
-
-habit_oferta_2019$mes <- habit_oferta_2019$date
-data.frame(habit_oferta_2019$mes <-month(ymd(habit_oferta_2019$mes)))
-habit_oferta_2019$date <- as.Date(habit_oferta_2019$date)
-habit_oferta_2019$any <- format(as.Date(habit_oferta_2019$date, format="%Y/%m/%d"),"%Y")
-habit_oferta_2019 <- data.table(habit_oferta_2019)
-habit_oferta_2019 <- habit_oferta_2019[order(habit_oferta_2019$property_id),]
-
-missing_date_posting <- habit_oferta_2019 %>% group_by(property_id) %>%
-  arrange(date) %>%
-  filter(row_number()==1)
-missing_date_posting <- data.frame(missing_date_posting)
-names(missing_date_posting)[1] <- "date_posting2"
-missing_date_posting <- missing_date_posting[,c(1,2)]
-missing_date_posting2 <- data.frame(habit_oferta_2019$property_id, habit_oferta_2019$date_posting)
-names(missing_date_posting2)[c(1,2)] <- c("property_id", "date_posting2")
-
+habit_ofer_2019$mes <- habit_ofer_2019$date
+data.frame(habit_ofer_2019$mes <-month(ymd(habit_ofer_2019$mes)))
+habit_ofer_2019$date <- as.Date(habit_ofer_2019$date)
+habit_ofer_2019$any <- format(as.Date(habit_ofer_2019$date, format="%Y/%m/%d"),"%Y")
 library(data.table)
-unique_key1 <- paste(missing_date_posting$property_id)
-unique_key2 <- paste(missing_date_posting2$property_id)
-inds <- is.na(missing_date_posting$date_posting2)
-missing_date_posting2$date_posting2[inds] <- missing_date_posting$date_posting2[match(unique_key2[inds], unique_key1)]
+habit_ofer_2019 <- data.table(habit_ofer_2019)
+habit_ofer_2019 <- habit_ofer_2019%>%
+  arrange(property_id, date, date_posting)
 
-setDT(habit_oferta_2019); setDT(missing_date_posting)
-habit_oferta_2019[is.na(date_posting), date_posting := missing_date_posting[.SD, on=.(property_id), date_posting2]]
-habit_oferta_2019 <- habit_oferta_2019[order(habit_oferta_2019$property_id),]
+###########################################################
+######## Mitjanes de superficie
+###########################################################
+habit_ofer_2019 <- habit_ofer_2019[habit_ofer_2019$surface != -1, ] 
+
+mitjana_surface_o_m <- aggregate(x = habit_ofer_2019$surface,    
+                                 by = list(habit_ofer_2019$property_id, 
+                                           habit_ofer_2019$municipality, 
+                                           habit_ofer_2019$mes),             
+                                 FUN = mean)                           
+
+names(mitjana_surface_o_m)[1:4] <- c("property_id", "municipality", "mes", "mitjana_superf_o_mes")
+
+test111_19 <- merge(x=habit_ofer_2019, y=mitjana_surface_o_m, by.x=c("property_id","municipality", "mes"), 
+                    by.y=c("property_id","municipality", "mes"))
+
+##################################################################
+############## Mitjanes de preu
+##################################################################
+
+mitjana_price_o_m <- aggregate(x = habit_ofer_2019$price,    
+                               by = list(habit_ofer_2019$property_id, 
+                                         habit_ofer_2019$municipality, 
+                                         habit_ofer_2019$mes),             
+                               FUN = mean)                           
+
+names(mitjana_price_o_m)[1:4] <- c("property_id", "municipality", "mes", "mitjana_price_o_mes")
+
+
+test111_19 <- merge(x=test111_19, y=mitjana_price_o_m, 
+                    by.x = c("property_id","municipality", "mes"),
+                    by.y = c("property_id","municipality", "mes"))
+
+2000001100002716449
+
+##################################################################
+############## Preu M2
+##################################################################
+
+test111_19$preu_m2_mes <- test111_19$mitjana_price_o_mes/test111_19$mitjana_superf_o_mes
+
+test111_19 <- filter(test111_19, price >= 10 & price <= 10000)
+test111_19 <- filter(test111_19, surface >= 10 & surface <= 10000)
+
+
+##################################################
+###### Primera data, ultima data and date posting
+##################################################
+##################################################
+###### Spare this subsection for the next code
+##################################################
 
 #2000002500003786677
 #2000050000003768984
 
-habit_oferta_2019 <- cbind(habit_oferta_2019, missing_date_posting2$date_posting2)
-names(habit_oferta_2019)[20] <-"dia_public_nas"
+#habit_ofer_2019 <- cbind(habit_ofer_2019, missing_date_posting2$date_posting2)
+#names(habit_ofer_2019)[19] <-"dia_public_nas"
 
 #Adding first date column
-test11a <- habit_oferta_2019[order(habit_oferta_2019$date_posting),]
-test11a <- habit_oferta_2019[,c(2,6,14)]
+test11a_19_fd <- habit_ofer_2019[order(habit_ofer_2019$date),]
+test11a_19_fd <- habit_ofer_2019[,c(1:4)]
 
-test11a <- test11a %>%
-  group_by(property_id, municipality, date_posting) %>%
+test11a_19_fd <- test11a_19_fd %>%
+  group_by(property_id, municipality) %>%
   filter(row_number()==1) %>%
-  mutate(primera_data = date_posting)
-test11a <- test11a[,c(1,2,4)]
+  mutate(primera_data = date)
+test11a_19_fd <- test11a_19_fd[,c(1,2,3,5)]
 
 #Adding last date column
-test11b <- habit_oferta_2019[order(habit_oferta_2019$date_posting),]
-test11b <- habit_oferta_2019[,c(1,2,6)]
+test11b_19_ld <- habit_ofer_2019[order(habit_ofer_2019$date),]
+test11b_19_ld <- habit_ofer_2019[,c(1:4)]
 
-test11b <- test11b %>%
-  group_by(municipality, property_id) %>%
+test11b_19_ld <- test11b_19_ld %>%
+  group_by(property_id, municipality) %>%
   filter(row_number()==n()) %>%
   mutate(ultima_data = date)
-test11b <- test11b[,c(2:4)]
+test11b_19_ld <- test11b_19_ld[,c(1,2,3,5)]
 
-test111 <- merge(x=test11a, y=test11b, by.x=c("property_id","municipality"), 
-                 by.y=c("property_id","municipality"))
-
-test111 <- merge(x=habit_oferta_2019, y=test111, by.x=c("property_id","municipality"), 
-                 by.y=c("property_id","municipality"), allow.cartesian=TRUE)
+test111_19_pm_ud <- merge(x=test11a_19_fd, y=test11b_19_ld, by.x=c("property_id","municipality"), 
+                          by.y=c("property_id","municipality"))
 
 
-test111 <- as.data.frame(test111)
+#Adding date posting
+test11b_19_dp <- habit_ofer_2019[order(habit_ofer_2019$date_posting),]
+test11b_19_dp <- habit_ofer_2019[,c(1:3, 10)]
 
-#####################
+test11b_19_dp <- test11b_19_dp %>%
+  group_by(property_id, municipality) %>%
+  filter(row_number()==1) %>%
+  mutate(date_posting_calcul = date_posting)
+test11b_19_dp <- test11b_19_dp[,c(1,2,3,5)]
 
-test111 <- test111 %>% mutate(trimestre =
-                                dplyr::case_when(mes <= 3 & any == "2019" ~ "2019/T1", 
-                                                 mes >= 4 & mes <= 6 & any == "2019" ~ "2019/T2",
-                                                 mes >= 7 & mes <= 9 & any == "2019" ~ "2019/T3",
-                                                 mes >= 10 & mes <= 12 & any == "2019" ~ "2019/T4",
-                                                 mes <= 3 & any == "2020" ~ "2020/T1",
-                                                 mes >= 4 & mes <= 6 & any == "2020" ~ "2020/T2",
-                                                 mes >= 7 & mes <= 9 & any == "2020" ~ "2020/T3",
-                                                 mes >= 10 & mes <= 12 & any == "2020" ~ "2020/T4",
-                                                 mes <= 3 & any == "2021" ~ "2021/T1",
-                                                 mes >= 4 & mes <= 6 & any == "2021" ~ "2021/T2",
-                                                 mes >= 7 & mes <= 9 & any == "2021" ~ "2021/T3",
-                                                 mes >= 10 & mes <= 12 & any == "2021" ~ "2021/T4",
-                                                 mes <= 3 & any == "2022" ~ "2022/T1",
-                                                 mes >= 4 & mes <= 6 & any == "2022" ~ "2022/T2",
-                                                 mes >= 7 & mes <= 9 & any == "2022" ~ "2022/T3",
-                                                 mes >= 10 & mes <= 12 & any == "2022" ~ "2022/T4")
+test111_19_pm_ud_dp <- merge(x=test111_19_pm_ud, y=test11b_19_dp, by.x=c("property_id","municipality"), 
+                             by.y=c("property_id","municipality"))
+
+test111_19_pm_ud_dp <- data.frame(test111_19_pm_ud_dp$property_id, 
+                                  test111_19_pm_ud_dp$municipality, 
+                                  test111_19_pm_ud_dp$primera_data,
+                                  test111_19_pm_ud_dp$ultima_data,
+                                  test111_19_pm_ud_dp$date_posting_calcul)
+
+names(test111_19_pm_ud_dp)[1:5] <- c("property_id", "municipality", "primera_data", "ultlima_data", "date_posting_calcul")
+
+
+test111_19_pm_ud_dp <- test111_19_pm_ud_dp[order(test111_19_pm_ud_dp$primera_data),]
+
+test111_19 <- merge(x=test111_19, y=test111_19_pm_ud_dp, by.x=c("property_id","municipality"), 
+                    by.y=c("property_id","municipality"))
+
+2002375100004157071
+##################################################
+##################### Adding trimestre
+##################################################
+
+test111_19 <- test111_19 %>% mutate(trimestre =
+                                      dplyr::case_when(mes <= 3 & any == "2019" ~ "2019/T1", 
+                                                       mes >= 4 & mes <= 6 & any == "2019" ~ "2019/T2",
+                                                       mes >= 7 & mes <= 9 & any == "2019" ~ "2019/T3",
+                                                       mes >= 10 & mes <= 12 & any == "2019" ~ "2019/T4",
+                                                       mes <= 3 & any == "2020" ~ "2020/T1",
+                                                       mes >= 4 & mes <= 6 & any == "2020" ~ "2020/T2",
+                                                       mes >= 7 & mes <= 9 & any == "2020" ~ "2020/T3",
+                                                       mes >= 10 & mes <= 12 & any == "2020" ~ "2020/T4",
+                                                       mes <= 3 & any == "2021" ~ "2021/T1",
+                                                       mes >= 4 & mes <= 6 & any == "2021" ~ "2021/T2",
+                                                       mes >= 7 & mes <= 9 & any == "2021" ~ "2021/T3",
+                                                       mes >= 10 & mes <= 12 & any == "2021" ~ "2021/T4",
+                                                       mes <= 3 & any == "2022" ~ "2022/T1",
+                                                       mes >= 4 & mes <= 6 & any == "2022" ~ "2022/T2",
+                                                       mes >= 7 & mes <= 9 & any == "2022" ~ "2022/T3",
+                                                       mes >= 10 & mes <= 12 & any == "2022" ~ "2022/T4")
 )
 
 
-############################################################
-############ Mitjanes Mensuals
-############################################################
-mitjana_preu_mes <- test111 %>% aggregate(price~property_id+mes, mean, digits=2)
-mitjana_preu_mes$mes <- NULL
-names(mitjana_preu_mes)[2] <- "mitjana_preu_mes"
-mitjana_superficie_mes <- test111 %>% aggregate(surface~property_id+mes, mean, digits=2)
-mitjana_superficie_mes$mes <- NULL
-names(mitjana_superficie_mes)[2] <- "mitjana_superficie_mes"
-############################################################
-############################################################
 
-test111 <- test111 %>% group_by(property_id, municipality, mes, trimestre) %>%
-  filter(row_number()==1)
 
-############
-test111 <- join(test111, mitjana_preu_mes, by = "property_id" )
-test111 <- join(test111, mitjana_superficie_mes, by = "property_id")
+
+##########################################
+##### Recovering NOMMUNI, CODIMUNI & Cleaning
+##########################################
+
+test111_19$NOMMUNI<-gsub(" Capital","",as.character(test111_19$NOMMUNI))
+test111_19$NOMMUNI<-gsub(" Barcelona","Barcelona",as.character(test111_19$NOMMUNI))
+test111_19$NOMMUNI<-gsub(" Girona","Girona",as.character(test111_19$NOMMUNI))
+test111_19$NOMMUNI<-gsub(" Lleida","Lleida",as.character(test111_19$NOMMUNI))
+test111_19$##########
+NOMMUNI<-gsub(" Tarragona","Tarragona",as.character(test111_19$NOMMUNI))
+test111_19$NOMMUNI[which(test111_19$NOMMUNI==" Capital")] <- ""
+test111_19$NOMMUNI[which(test111_19$NOMMUNI==" Barcelona")] <- "Barcelona"
+test111_19$NOMMUNI[which(test111_19$NOMMUNI==" Girona")] <- "Girona"
+test111_19$NOMMUNI[which(test111_19$NOMMUNI==" Lleida")] <- "Lleida"
+test111_19$NOMMUNI[which(test111_19$NOMMUNI==" Tarragona")] <- "Tarragona"
+test111_19$NOMMUNI[which(test111_19$NOMMUNI=="Hospitalet de Llobregat (L´)")] <- "l'Hospitalet de Llobregat"
+test111_19$NOMMUNI[which(test111_19$NOMMUNI=="Ametlla de Mar (L´)")] <- "l'Ametlla de Mar"
+test111_19$NOMMUNI[which(test111_19$NOMMUNI=="Escala (L´)")] <- "l'Escala"
+test111_19$NOMMUNI[which(test111_19$NOMMUNI=="Ametlla del Vallès (L´)")] <- "l'Ametlla del Vallès"
+test111_19$NOMMUNI[which(test111_19$NOMMUNI=="Ampolla (L´)")] <- "l'Ampolla"
+test111_19$NOMMUNI[which(test111_19$NOMMUNI=="Arboç (L´)")] <- "l'Arboç"
+test111_19$NOMMUNI[which(test111_19$NOMMUNI=="Aldea (L´)")] <- "l'Aldea"
+test111_19$NOMMUNI[which(test111_19$NOMMUNI=="Espluga de Francolí (L´)")] <- "l'Espluga de Francolí"
+test111_19$NOMMUNI[which(test111_19$NOMMUNI=="Armentera (L´)")] <- "l'Armentera"
+test111_19$NOMMUNI[which(test111_19$NOMMUNI=="Espluga Calba (L´)")] <- "l'Espluga Calba"
+test111_19$NOMMUNI[which(test111_19$NOMMUNI=="Estany (L´)")] <- "l'Estany"
+test111_19$NOMMUNI[which(test111_19$NOMMUNI=="Albiol (L´)")] <- "l'Albiol"
+test111_19$NOMMUNI[which(test111_19$NOMMUNI=="Bruc (El)")] <- "el Bruc"
+test111_19$NOMMUNI[which(test111_19$NOMMUNI=="Brull (El)")] <- "el Brull"
+test111_19$NOMMUNI[which(test111_19$NOMMUNI=="Vendrell (El)")] <- "el Vendrel"
+
+test111_19$NOMMUNI[which(test111_19$NOMMUNI=="Masnou (El)")] <- "el Masnou"
+test111_19$NOMMUNI[which(test111_19$NOMMUNI=="Morell (El)")] <- "el Morell"
+test111_19$NOMMUNI[which(test111_19$NOMMUNI=="Pont de Suert (El)")] <- "el Pont de Suert"
+test111_19$NOMMUNI[which(test111_19$NOMMUNI=="Prat de Llobregat (El)")] <- "el Prat de Llobregat"
+test111_19$NOMMUNI[which(test111_19$NOMMUNI=="Montmell (El)")] <- "el Montmell"
+test111_19$NOMMUNI[which(test111_19$NOMMUNI=="Pla de Santa Maria (El)")] <- "el Pla de Santa Maria"
+test111_19$NOMMUNI[which(test111_19$NOMMUNI=="Papiol (El)")] <- "el Papiol"
+test111_19$NOMMUNI[which(test111_19$NOMMUNI=="Poal (El)")] <- "el Poal"
+test111_19$NOMMUNI[which(test111_19$NOMMUNI=="Catllar (El)")] <- "el Catllar"
+test111_19$NOMMUNI[which(test111_19$NOMMUNI=="Pont de Vilomara i Rocafort (El)")] <- "el Pont de Vilomara i Rocafort"
+test111_19$NOMMUNI[which(test111_19$NOMMUNI=="Port de la Selva (El)")] <- "el Port de la Selva"
+test111_19$NOMMUNI[which(test111_19$NOMMUNI=="Rourell (El)")] <- "el Rourell"
+test111_19$NOMMUNI[which(test111_19$NOMMUNI=="Pla del Penedès (El)")] <- "el Pla del Penedès"
+test111_19$NOMMUNI[which(test111_19$NOMMUNI=="Pont de Bar (El)")] <- "el Pont de Bar"
+test111_19$NOMMUNI[which(test111_19$NOMMUNI=="Far d´Empordà (El)")] <- "el Far d'Empordà"
+test111_19$NOMMUNI[which(test111_19$NOMMUNI=="Perelló (El)")] <- "el Perelló"
+test111_19$NOMMUNI[which(test111_19$NOMMUNI=="Pallaresos (Els)")] <- "els Pallaresos"
+test111_19$NOMMUNI[which(test111_19$NOMMUNI=="Alamús (Els)")] <- "els Alamús"
+test111_19$NOMMUNI[which(test111_19$NOMMUNI=="Prats de Rei (Els)")] <- "els Prats de Rei"
+test111_19$NOMMUNI[which(test111_19$NOMMUNI=="Hostalets de Pierola (Els)")] <- "els Hostalets de Pierola"
+
+
+test111_19$NOMMUNI[which(test111_19$NOMMUNI=="Riera de Gaià (La)")] <- "la Riera de Gaià"
+test111_19$NOMMUNI[which(test111_19$NOMMUNI=="Seu d´Urgell (La)")] <- "la Seu d'Urgell"
+test111_19$NOMMUNI[which(test111_19$NOMMUNI=="Roca del Vallès (La)")] <- "la Roca del Vallès"
+test111_19$NOMMUNI[which(test111_19$NOMMUNI=="Palma de Cervelló (La)")] <- "la Palma de Cervelló"
+test111_19$NOMMUNI[which(test111_19$NOMMUNI=="Garriga (La)")] <- "la Garriga"
+test111_19$NOMMUNI[which(test111_19$NOMMUNI=="Molina (La)")] <- "la Molina"
+test111_19$NOMMUNI[which(test111_19$NOMMUNI=="Jonquera (La)")] <- "la Jonquera"
+test111_19$NOMMUNI[which(test111_19$NOMMUNI=="Llagosta (La)")] <- "la Llagosta"
+test111_19$NOMMUNI[which(test111_19$NOMMUNI=="Pobla de Mafumet (La)")] <- "la Pobla de Mafumet"
+test111_19$NOMMUNI[which(test111_19$NOMMUNI=="Coma i la Pedra (La)")] <- "la Coma i la Pedra"
+test111_19$NOMMUNI[which(test111_19$NOMMUNI=="Pobla de Lillet (La)")] <- "la Pobla de Lillet"
+test111_19$NOMMUNI[which(test111_19$NOMMUNI=="Bisbal d´Empordà (La)")] <- "la Bisbal d'Empordà"
+test111_19$NOMMUNI[which(test111_19$NOMMUNI=="Tallada d´Empordà (La)")] <- "la Tallada d'Empordà"
+test111_19$NOMMUNI[which(test111_19$NOMMUNI=="Pobla de Claramunt (La)")] <- "la Pobla de Claramunt"
+test111_19$NOMMUNI[which(test111_19$NOMMUNI=="Morera de Montsant (La)")] <- "la Morera de Montsant"
+test111_19$NOMMUNI[which(test111_19$NOMMUNI=="Vall d´en Bas (La)")] <- "la Vall d'en Bas"
+test111_19$NOMMUNI[which(test111_19$NOMMUNI=="Llacuna (La)")] <- "la Hostalets de Pierola"
+test111_19$NOMMUNI[which(test111_19$NOMMUNI=="Pobla de Cérvoles (La)")] <- "la Pobla de Cérvoles"
+test111_19$NOMMUNI[which(test111_19$NOMMUNI=="Selva del Camp (La)")] <- "la Selva del Camp"
+test111_19$NOMMUNI[which(test111_19$NOMMUNI=="Cellera de Ter (La)")] <- "la Cellera de Ter"
+test111_19$NOMMUNI[which(test111_19$NOMMUNI=="Vall de Boí (La)")] <- "la Vall de Boí"
+test111_19$NOMMUNI[which(test111_19$NOMMUNI=="Granada (La)")] <- "la Granada"
+test111_19$NOMMUNI[which(test111_19$NOMMUNI=="Nou de Gaià (La)")] <- "la Nou de Gaià"
+test111_19$NOMMUNI[which(test111_19$NOMMUNI=="Riba (La)")] <- "la Riba"
+test111_19$NOMMUNI[which(test111_19$NOMMUNI=="Secuita (La)")] <- "la Secuita"
+test111_19$NOMMUNI[which(test111_19$NOMMUNI=="Portella (La)")] <- "la Portella"
+test111_19$NOMMUNI[which(test111_19$NOMMUNI=="Pobla de Montornès (La)")] <- "la Pobla de Montornès"
+test111_19$NOMMUNI[which(test111_19$NOMMUNI=="Galera (La)")] <- "la Galera"
+test111_19$NOMMUNI[which(test111_19$NOMMUNI=="Guingueta d´Àneu (La)")] <- "la Guingueta d'Àneu"
+test111_19$NOMMUNI[which(test111_19$NOMMUNI=="Pobla de Segur (La)")] <- "la Pobla de Segur"
+test111_19$NOMMUNI[which(test111_19$NOMMUNI=="Canonja (la) ")] <- "la Canonja"
+test111_19$NOMMUNI[which(test111_19$NOMMUNI=="Bisbal del Penedès (La)")] <- "la Bisbal del Penedès"
+test111_19$NOMMUNI[which(test111_19$NOMMUNI=="Torre de l´Espanyol (La)")] <- "la Torre de l'Espanyol"
+test111_19$NOMMUNI[which(test111_19$NOMMUNI=="Vall de Bianya (La)")] <- "la Vall de Bianya"
+test111_19$NOMMUNI[which(test111_19$NOMMUNI=="Sénia (La)")] <- "la Sénia"
+test111_19$NOMMUNI[which(test111_19$NOMMUNI=="Vajol (La)")] <- "la Vajol"
+test111_19$NOMMUNI[which(test111_19$NOMMUNI=="Torre de Cabdella (La)")] <- "la Torre de Cabdella"
+test111_19$NOMMUNI[which(test111_19$NOMMUNI=="Pera (La)")] <- "la Pera"
+test111_19$NOMMUNI[which(test111_19$NOMMUNI=="Sentiu de Sió (La)")] <- "la Sentiu"
+test111_19$NOMMUNI[which(test111_19$NOMMUNI=="Torre de Claramunt (La)")] <- "la Torre de Claramunt"
+test111_19$NOMMUNI[which(test111_19$NOMMUNI=="Baronia de Rialb (La)")] <- "la Baronia de Rialb"
+
+test111_19$NOMMUNI[which(test111_19$NOMMUNI=="Franqueses del Vallès (Les)")] <- "les Franqueses del Vallès"
+test111_19$NOMMUNI[which(test111_19$NOMMUNI=="Borges del Camp (Les)")] <- "les Borges del Camp"
+test111_19$NOMMUNI[which(test111_19$NOMMUNI=="Borges Blanques (Les)")] <- "les Borges Blanques"
+test111_19$NOMMUNI[which(test111_19$NOMMUNI=="Masies de Voltregà (Les)")] <- "les Masies de Voltregà"
+test111_19$NOMMUNI[which(test111_19$NOMMUNI=="Planes d´Hostoles (Les)")] <- "les Planes d'Hostoles"
+test111_19$NOMMUNI[which(test111_19$NOMMUNI=="Valls de Valira (Les)")] <- "les Valls de Valira"
+test111_19$NOMMUNI[which(test111_19$NOMMUNI=="Preses (Les)")] <- "les Preses"
+test111_19$NOMMUNI[which(test111_19$NOMMUNI=="Piles (Les)")] <- "les Piles"
+test111_19$NOMMUNI[which(test111_19$NOMMUNI=="Masies de Roda (Les)")] <- "les Masies de Roda"
+test111_19$NOMMUNI[which(test111_19$NOMMUNI=="Cabanyes (Les)")] <- "les Cabanyes"
+test111_19$NOMMUNI[which(test111_19$NOMMUNI=="Sant Carles de la Ràpita")] <- "la Ràpita"
+test111_19$NOMMUNI<-gsub(" d´"," d'",as.character(test111_19$NOMMUNI))
+test111_19$NOMMUNI<-gsub(" n´"," n'",as.character(test111_19$NOMMUNI))
+test111_19$NOMMUNI<-gsub(" l´"," l'",as.character(test111_19$NOMMUNI))
+test111_19$NOMMUNI[which(test111_19$NOMMUNI=="Coma-ruga")] <- "el Vendrell"
+
 
 ############################################################
 ############ Tipologias Plurifamiliar & Unifamiliar
 ############################################################
 
-test111$tipologia <- test111$property_subtype
 
-test111$tipologia[which(test111$tipologia=="Apartamento")] <- "Plurifamiliar"
-test111$tipologia[which(test111$tipologia=="Ático")] <- "Plurifamiliar"
-test111$tipologia[which(test111$tipologia=="Casa")] <- "Unifamiliar"
-test111$tipologia[which(test111$tipologia=="Casa adosada")] <- "Unifamiliar"
-test111$tipologia[which(test111$tipologia=="Casa pareada")] <- "Unifamiliar"
-test111$tipologia[which(test111$tipologia=="Unifamiliar pareada")] <- "Unifamiliar"
-test111$tipologia[which(test111$tipologia=="Chalet")] <- "Unifamiliar"
-test111$tipologia[which(test111$tipologia=="Dúplex")] <- "Plurifamiliar"
-test111$tipologia[which(test111$tipologia=="Estudio")] <- "Plurifamiliar"
-test111$tipologia[which(test111$tipologia=="Loft")] <- "Plurifamiliar"
-test111$tipologia[which(test111$tipologia=="Masía")] <- "Unifamiliar"
-test111$tipologia[which(test111$tipologia=="Piso")] <- "Plurifamiliar"
-test111$tipologia[which(test111$tipologia=="Planta baja")] <- "Plurifamiliar"
-test111$tipologia[which(test111$tipologia=="Torre")] <- "Plurifamiliar"
-test111$tipologia[which(test111$tipologia=="Tríplex")] <- "Plurifamiliar"
-test111$tipologia[which(test111$tipologia=="Casa-Chalet")] <- "Unifamiliar"
-test111$tipologia[which(test111$tipologia=="Finca rústica")] <- "Unifamiliar"
-test111$tipologia[which(test111$tipologia=="Duplex")] <- "Plurifamiliar"
+test111_19$tipologia <- test111_19$property_subtype
 
-test111$district[which(test111$district=="Sants - Montjuïc")] <- "Sants-Montjuïc"
-test111$district[which(test111$district=="Sarrià - Sant Gervasi")] <- "Sarrià-Sant Gervasi"
-test111$district[which(test111$district=="Horta - Guinardò")] <- "Horta-Guinardò"
-test111$district[which(test111$district=="Horta - Guinardó")] <- "Horta-Guinardò"
-test111$district[which(test111$district=="Sants Montjuïc")] <- "Sants-Montjuïc"
-test111$district[which(test111$district=="Sarrià Sant Gervasi")] <- "Sarrià-Sant Gervasi"
-test111$district[which(test111$district=="Horta Guinardó")] <- "Horta-Guinardò"
+test111_19$tipologia[which(test111_19$tipologia=="Apartamento")] <- "Plurifamiliar"
+test111_19$tipologia[which(test111_19$tipologia=="Ático")] <- "Plurifamiliar"
+test111_19$tipologia[which(test111_19$tipologia=="Casa")] <- "Unifamiliar"
+test111_19$tipologia[which(test111_19$tipologia=="Casa adosada")] <- "Unifamiliar"
+test111_19$tipologia[which(test111_19$tipologia=="Casa pareada")] <- "Unifamiliar"
+test111_19$tipologia[which(test111_19$tipologia=="Unifamiliar pareada")] <- "Unifamiliar"
+test111_19$tipologia[which(test111_19$tipologia=="Chalet")] <- "Unifamiliar"
+test111_19$tipologia[which(test111_19$tipologia=="Dúplex")] <- "Plurifamiliar"
+test111_19$tipologia[which(test111_19$tipologia=="Estudio")] <- "Plurifamiliar"
+test111_19$tipologia[which(test111_19$tipologia=="Loft")] <- "Plurifamiliar"
+test111_19$tipologia[which(test111_19$tipologia=="Masía")] <- "Unifamiliar"
+test111_19$tipologia[which(test111_19$tipologia=="Piso")] <- "Plurifamiliar"
+test111_19$tipologia[which(test111_19$tipologia=="Planta baja")] <- "Plurifamiliar"
+test111_19$tipologia[which(test111_19$tipologia=="Torre")] <- "Plurifamiliar"
+test111_19$tipologia[which(test111_19$tipologia=="Tríplex")] <- "Plurifamiliar"
+test111_19$tipologia[which(test111_19$tipologia=="Casa-Chalet")] <- "Unifamiliar"
+test111_19$tipologia[which(test111_19$tipologia=="Finca rústica")] <- "Unifamiliar"
+test111_19$tipologia[which(test111_19$tipologia=="Duplex")] <- "Plurifamiliar"
 
+test111_19$district[which(test111_19$district=="Sants - Montjuïc")] <- "Sants-Montjuïc"
+test111_19$district[which(test111_19$district=="Sarrià - Sant Gervasi")] <- "Sarrià-Sant Gervasi"
+test111_19$district[which(test111_19$district=="Horta - Guinardò")] <- "Horta-Guinardò"
+test111_19$district[which(test111_19$district=="Horta - Guinardó")] <- "Horta-Guinardò"
+test111_19$district[which(test111_19$district=="Sants Montjuïc")] <- "Sants-Montjuïc"
+test111_19$district[which(test111_19$district=="Sarrià Sant Gervasi")] <- "Sarrià-Sant Gervasi"
+test111_19$district[which(test111_19$district=="Horta Guinardó")] <- "Horta-Guinardò"
 
-test1111 <- test111 %>% group_by(property_id, municipality, mes) %>%
-  filter(row_number()==1)
-
-test1111$mes_any_primera_data <- test1111$date
-
-test1111$preu_m2 <- test1111$price/test1111$surface
-
-test1111 <- filter(test1111, price >= 10 & price <= 10000)
-test1111 <- filter(test1111, surface >= 10 & surface <= 10000)
+2002384300000000219
+##################################################################
 
 catalunya_noms <- data.frame(catalunya_noms$NOMMUNI, catalunya_noms$CODIMUNI)
 names(catalunya_noms)[c(1,2)] <- c("NOMMUNI", "CODIMUNI")
-test1111 <- join(test1111, catalunya_noms, by = "NOMMUNI")
-habit_oferta_2019 <- test1111
+test111_19 <- join(test111_19, catalunya_noms, by = "NOMMUNI")
+
+##################################################################
+############## Quantiles 2021
+##################################################################
+
+test_2019 <- test111_19
+counting_muni_2019 <- test_2019 %>% 
+  count(c("municipality", "mes"))
+names(counting_muni_2019)[3] <- "freq_muni_mes"
+
+q = c(.25, .5, .75)
+p_names <- map_chr(q, ~paste0(.x*100, "%"))
+p_funs <- map(q, ~partial(quantile, probs = .x, na.rm = TRUE)) %>% 
+  set_names(nm = p_names)
+p_funs
+
+preu_mitjana_mes_2019<- test111_19 %>% 
+  group_by(municipality, any, mes) %>% 
+  summarize_at(vars(preu_m2_mes), funs(!!!p_funs))
+
+names(preu_mitjana_mes_2019)[c(4:6)] <- c("q1_muni", "q2_muni", "q3_muni")
+
+test_2019 <- left_join(test_2019, preu_mitjana_mes_2019)%>%
+  distinct(property_id, municipality, mes, .keep_all =TRUE)
+test_2019 <- left_join(test_2019, counting_muni_2019)%>%
+  distinct(property_id, municipality, mes, .keep_all =TRUE)
+
+####################
 
 monthStart <- function(x) {
   x <- as.POSIXlt(x)
@@ -305,9 +368,25 @@ monthStart <- function(x) {
   as.Date(x)
 }
 
-habit_oferta_2019$data1 <- monthStart(habit_oferta_2019$date)
-habit_oferta_2019$data_final <- (habit_oferta_2019$data1 %m+% months(1))
+test_2019$data1 <- monthStart(test_2019$date)
+test_2019$data_final <- (test_2019$data1 %m+% months(1))
 
-habit_oferta_2019 <- habit_oferta_2019[,c(1:2, 14, 6:8, 27, 9:13, 15:19, 20:22, 30:31, 23:29)]
+which(test_2019$date_posting > test_2019$primera_data)
+which(is.na(test_2019$date_posting))
+na_date <- as.data.frame(ddply(test_2019, .(property_id), summarize, nNA=sum(is.na(date_posting_calcul))))
 
-write.csv(habit_oferta_2019, "/Users/wemigliari/Documents/Pós-Doutorado & Doutorado/Pós-Doc/Observatori_Metropolita/Dades/2019_Habitaclia_oferta/tractament_habit_oferta_2019.csv")
+test_2019 <- test_2019%>%
+  group_by(property_id, municipality)%>%
+  dplyr::mutate(date_posting_calcul = case_when(
+    date_posting_calcul < primera_data ~ date_posting_calcul,
+    date_posting_calcul == primera_data ~ date_posting_calcul,
+    date_posting_calcul > primera_data ~ primera_data
+  )
+)
+
+which(test_2019$date_posting_calcul > test_2019$primera_data)
+which(is.na(test_2019$date_posting_calcul))
+
+write.csv(test_2019, "/Users/wemigliari/Documents/Pós-Doutorado & Doutorado/Pós-Doc/Observatori_Metropolita/Dades/2019_Habitaclia_oferta/tractament_habit_oferta_2019.csv")
+
+
