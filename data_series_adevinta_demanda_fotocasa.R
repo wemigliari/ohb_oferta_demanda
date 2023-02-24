@@ -299,6 +299,8 @@ trimestral_cat_foto <- merge(trimestral_cat_foto, catalunya_noms,
                              by.x=c("NOMMUNI"),
                              by.y=c("NOMMUNI"))
 
+trimestral_cat_foto$district <- "Undefined"
+trimestral_cat_foto <-trimestral_cat_foto[,c(1, 20, 2:19)]
 
 write.csv(trimestral_cat_foto, "/Users/wemigliari/Documents/Pós-Doutorado & Doutorado/Pós-Doc/Observatori_Metropolita/Dades/serie_of_dem_fotocasa_trimestrals.csv")
 
