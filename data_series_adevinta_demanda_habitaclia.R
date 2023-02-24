@@ -291,6 +291,10 @@ trimestral_cat_habit <- merge(trimestral_cat_habit,catalunya_noms,
                               by.x = c("NOMMUNI"),
                               by.y = c("NOMMUNI"))
 
+
+trimestral_cat_habit$district <- "Undefined"
+trimestral_cat_habit <-trimestral_cat_habit[,c(1, 20, 2:19)]
+
 write.csv(trimestral_cat_habit, "/Users/wemigliari/Documents/Pós-Doutorado & Doutorado/Pós-Doc/Observatori_Metropolita/Dades/serie_of_dem_habitaclia_trimestrals.csv")
 
 
