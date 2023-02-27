@@ -152,4 +152,31 @@ trimestral_junts_fotot4 <- bind_rows(trimestral_junts_foto4, trimestral_junts_fo
 
 write.csv(trimestral_junts_fotot4, "/Users/wemigliari/Documents/Pós-Doutorado & Doutorado/Pós-Doc/Observatori_Metropolita/Dades/Trimestrals/trimestrals_bcn_cat_final_foto.csv")
 
+####################
+
+library(ggplot2)
+# Change line types by groups (supp)
+ggplot(final, aes(x=trimestre, y=preu_o_f_bcn_dist, group=NOMMUNI)) +
+  geom_line(aes(linetype=NOMMUNI))+
+  geom_point()+
+  ylim(0,1400)
+# Change line types and point shapes
+ggplot(df2, aes(x=dose, y=len, group=supp)) +
+  geom_line(aes(linetype=supp))+
+  geom_point(aes(shape=supp))
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
