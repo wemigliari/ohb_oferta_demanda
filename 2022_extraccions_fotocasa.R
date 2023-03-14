@@ -2,410 +2,246 @@ library(xlsx)
 library(readxl)
 library(dplyr)
 library(tidyverse)
-require(sf)
 library(arrow)
 library(plyr)
 library(lubridate)
 library(data.table)
 
 options(scipen=999)
+options(digits=2)
 
-filenames <- list.files("/Users/wemigliari/Documents/Pós-Doutorado & Doutorado/Pós-Doc/Observatori_Metropolita/Dades/2022_Fotocasa_Oferta/dt=20220101", pattern="*.snappy.parquet", full.names=TRUE)
-foto_gener_1 <- read_parquet("/Users/wemigliari/Documents/Pós-Doutorado & Doutorado/Pós-Doc/Observatori_Metropolita/Dades/2022_Fotocasa_Oferta/dt=20220101/part-00000-tid-7812022928398819517-7a836ef0-163e-42ce-a063-d1e4de14c105-125504-1.c000.snappy.parquet")
-foto_gener_2 <- read_parquet("/Users/wemigliari/Documents/Pós-Doutorado & Doutorado/Pós-Doc/Observatori_Metropolita/Dades/2022_Fotocasa_Oferta/dt=20220101/part-00001-tid-7812022928398819517-7a836ef0-163e-42ce-a063-d1e4de14c105-125601-1.c000.snappy.parquet")
-foto_gener_3 <- read_parquet("/Users/wemigliari/Documents/Pós-Doutorado & Doutorado/Pós-Doc/Observatori_Metropolita/Dades/2022_Fotocasa_Oferta/dt=20220101/part-00002-tid-7812022928398819517-7a836ef0-163e-42ce-a063-d1e4de14c105-125670-1.c000.snappy.parquet")
-foto_gener_4 <- read_parquet("/Users/wemigliari/Documents/Pós-Doutorado & Doutorado/Pós-Doc/Observatori_Metropolita/Dades/2022_Fotocasa_Oferta/dt=20220101/part-00003-tid-7812022928398819517-7a836ef0-163e-42ce-a063-d1e4de14c105-125909-1.c000.snappy.parquet")
-foto_gener_1 <- foto_gener_1[,-c(27:58)]
-foto_gener_2 <- foto_gener_2[,-c(27:58)]
-foto_gener_3 <- foto_gener_3[,-c(27:58)]
-foto_gener_4 <- foto_gener_4[,-c(27:58)]
+filenames <- list.files("/Users/wemigliari/Documents/Pós-Doutorado & Doutorado/Pós-Doc/Observatori_Metropolita/Dades/2022_Fotocasa_Demanda/dt=20220101", pattern="*.snappy.parquet", full.names=TRUE)
+ldf <- lapply(filenames, read_parquet)
+class(ldf)
+foto_demanda_gener <-  as.data.frame(do.call(rbind, ldf))
 
-foto_ofer_gener <- bind_rows(foto_gener_1, foto_gener_2, foto_gener_3, foto_gener_4)
-foto_ofer_gener <- filter(foto_ofer_gener, level1 %in%  c("Cataluña"))
-count(foto_ofer_gener, "level1")
+foto_demanda_gener <- filter(foto_demanda_gener, level1 %in%  c("Cataluña"))
+count(foto_demanda_gener, "level1")
 
-foto_ofer_gener <- foto_ofer_gener %>% 
+foto_demanda_gener$date <- as.Date(as.character(foto_demanda_gener$date), format = "%Y%m%d")
+foto_demanda_gener <- foto_demanda_gener[order(foto_demanda_gener$date),]
+
+foto_demanda_gener <- foto_demanda_gener %>% 
   filter(!grepl(c('Sell'), c(transaction_type)))
-foto_ofer_gener <- foto_ofer_gener %>% 
+foto_demanda_gener <- foto_demanda_gener %>% 
   filter(!grepl(c('Share'), c(transaction_type)))
-foto_ofer_gener <- foto_ofer_gener %>% 
-  filter(!grepl(c('Undefined'), c(transaction_type)))
-
-foto_ofer_gener$date <- as.Date(as.character(foto_ofer_gener$date), format = "%Y%m%d")
-foto_ofer_gener <- foto_ofer_gener[order(foto_ofer_gener$date),]
-foto_ofer_gener$mes <- foto_ofer_gener$date
-rm(foto_gener_1, foto_gener_2, foto_gener_3, foto_gener_4)
-
-#transform data to month names
-month1 <- data.frame(foto_ofer_gener$mes <-month(ymd(foto_ofer_gener$mes)))
-names(month1)[1] <- "mes"
 
 #########################################################
 
-filenames2 <- list.files("/Users/wemigliari/Documents/Pós-Doutorado & Doutorado/Pós-Doc/Observatori_Metropolita/Dades/2022_Fotocasa_Oferta/dt=20220201", pattern="*.snappy.parquet", full.names=TRUE)
-foto_febrer_1 <- read_parquet("/Users/wemigliari/Documents/Pós-Doutorado & Doutorado/Pós-Doc/Observatori_Metropolita/Dades/2022_Fotocasa_Oferta/dt=20220201/part-00000-tid-1157573289571180571-e96b5fd0-7a19-473b-9fa0-b6613343fa9d-129592-1.c000.snappy.parquet")
-foto_febrer_2 <- read_parquet("/Users/wemigliari/Documents/Pós-Doutorado & Doutorado/Pós-Doc/Observatori_Metropolita/Dades/2022_Fotocasa_Oferta/dt=20220201/part-00001-tid-1157573289571180571-e96b5fd0-7a19-473b-9fa0-b6613343fa9d-129593-1.c000.snappy.parquet")
-foto_febrer_3 <- read_parquet("/Users/wemigliari/Documents/Pós-Doutorado & Doutorado/Pós-Doc/Observatori_Metropolita/Dades/2022_Fotocasa_Oferta/dt=20220201/part-00002-tid-1157573289571180571-e96b5fd0-7a19-473b-9fa0-b6613343fa9d-129594-1.c000.snappy.parquet")
-foto_febrer_4 <- read_parquet("/Users/wemigliari/Documents/Pós-Doutorado & Doutorado/Pós-Doc/Observatori_Metropolita/Dades/2022_Fotocasa_Oferta/dt=20220201/part-00003-tid-1157573289571180571-e96b5fd0-7a19-473b-9fa0-b6613343fa9d-129595-1.c000.snappy.parquet")
-foto_febrer_1 <- foto_febrer_1[,-c(27:58)]
-foto_febrer_2 <- foto_febrer_2[,-c(27:58)]
-foto_febrer_3 <- foto_febrer_3[,-c(27:58)]
-foto_febrer_4 <- foto_febrer_4[,-c(27:58)]
+filenames2 <- list.files("/Users/wemigliari/Documents/Pós-Doutorado & Doutorado/Pós-Doc/Observatori_Metropolita/Dades/2022_Fotocasa_Demanda/dt=20220201", pattern="*.snappy.parquet", full.names=TRUE)
+ldf2 <- lapply(filenames2, read_parquet)
+class(ldf2)
+foto_demanda_febrer <-  as.data.frame(do.call(rbind, ldf2))
 
-foto_ofer_febrer <- bind_rows(foto_febrer_1, foto_febrer_2, foto_febrer_3, foto_febrer_4)
-foto_ofer_febrer <- filter(foto_ofer_febrer, level1 %in%  c("Cataluña"))
-count(foto_ofer_febrer, "level1")
+foto_demanda_febrer <- filter(foto_demanda_febrer, level1 %in%  c("Cataluña"))
+count(foto_demanda_febrer, "level1")
 
-foto_ofer_febrer <- foto_ofer_febrer %>% 
+foto_demanda_febrer$date <- as.Date(as.character(foto_demanda_febrer$date), format = "%Y%m%d")
+foto_demanda_febrer <- foto_demanda_febrer[order(foto_demanda_febrer$date),]
+
+foto_demanda_febrer <- foto_demanda_febrer %>% 
   filter(!grepl(c('Sell'), c(transaction_type)))
-foto_ofer_febrer <- foto_ofer_febrer %>% 
+foto_demanda_febrer <- foto_demanda_febrer %>% 
   filter(!grepl(c('Share'), c(transaction_type)))
-foto_ofer_febrer <- foto_ofer_febrer %>% 
-  filter(!grepl(c('Undefined'), c(transaction_type)))
-
-foto_ofer_febrer$date <- as.Date(as.character(foto_ofer_febrer$date), format = "%Y%m%d")
-foto_ofer_febrer <- foto_ofer_febrer[order(foto_ofer_febrer$date),]
-foto_ofer_febrer$mes <- foto_ofer_febrer$date
-rm(foto_febrer_1, foto_febrer_2, foto_febrer_3, foto_febrer_4)
-
-#transform data to month names
-month2 <- data.frame(foto_ofer_febrer$mes <-month(ymd(foto_ofer_febrer$mes)))
-names(month2)[1] <- "mes"
 
 #########################################################
 
-filenames3 <- list.files("/Users/wemigliari/Documents/Pós-Doutorado & Doutorado/Pós-Doc/Observatori_Metropolita/Dades/2022_Fotocasa_Oferta/dt=20220301", pattern="*.snappy.parquet", full.names=TRUE)
-foto_marc_1 <- read_parquet("/Users/wemigliari/Documents/Pós-Doutorado & Doutorado/Pós-Doc/Observatori_Metropolita/Dades/2022_Fotocasa_Oferta/dt=20220301/part-00000-tid-5344431917765658807-c96f9f53-0ac0-4ae0-9ccb-330f43a305eb-129602-1.c000.snappy.parquet")
-foto_marc_2 <- read_parquet("/Users/wemigliari/Documents/Pós-Doutorado & Doutorado/Pós-Doc/Observatori_Metropolita/Dades/2022_Fotocasa_Oferta/dt=20220301/part-00001-tid-5344431917765658807-c96f9f53-0ac0-4ae0-9ccb-330f43a305eb-129603-1.c000.snappy.parquet")
-foto_marc_3 <- read_parquet("/Users/wemigliari/Documents/Pós-Doutorado & Doutorado/Pós-Doc/Observatori_Metropolita/Dades/2022_Fotocasa_Oferta/dt=20220301/part-00002-tid-5344431917765658807-c96f9f53-0ac0-4ae0-9ccb-330f43a305eb-129604-1.c000.snappy.parquet")
-foto_marc_4 <- read_parquet("/Users/wemigliari/Documents/Pós-Doutorado & Doutorado/Pós-Doc/Observatori_Metropolita/Dades/2022_Fotocasa_Oferta/dt=20220301/part-00003-tid-5344431917765658807-c96f9f53-0ac0-4ae0-9ccb-330f43a305eb-129605-1.c000.snappy.parquet")
-foto_marc_1 <- foto_marc_1[,-c(27:58)]
-foto_marc_2 <- foto_marc_2[,-c(27:58)]
-foto_marc_3 <- foto_marc_3[,-c(27:58)]
-foto_marc_4 <- foto_marc_4[,-c(27:58)]
+filenames3 <- list.files("/Users/wemigliari/Documents/Pós-Doutorado & Doutorado/Pós-Doc/Observatori_Metropolita/Dades/2022_Fotocasa_Demanda/dt=20220301", pattern="*.snappy.parquet", full.names=TRUE)
+ldf3 <- lapply(filenames3, read_parquet)
+class(ldf3)
+foto_demanda_marc <-  as.data.frame(do.call(rbind, ldf3))
 
-foto_ofer_marc <- bind_rows(foto_marc_1, foto_marc_2, foto_marc_3, foto_marc_4)
-foto_ofer_marc <- filter(foto_ofer_marc, level1 %in%  c("Cataluña"))
-count(foto_ofer_marc, "level1")
+foto_demanda_marc <- filter(foto_demanda_marc, level1 %in%  c("Cataluña"))
+count(foto_demanda_marc, "level1")
 
-foto_ofer_marc <- foto_ofer_marc %>% 
+foto_demanda_marc$date <- as.Date(as.character(foto_demanda_marc$date), format = "%Y%m%d")
+foto_demanda_marc <- foto_demanda_marc[order(foto_demanda_marc$date),]
+
+foto_demanda_marc <- foto_demanda_marc %>% 
   filter(!grepl(c('Sell'), c(transaction_type)))
-foto_ofer_marc <- foto_ofer_marc %>% 
+foto_demanda_marc <- foto_demanda_marc %>% 
   filter(!grepl(c('Share'), c(transaction_type)))
-foto_ofer_marc <- foto_ofer_marc %>% 
-  filter(!grepl(c('Undefined'), c(transaction_type)))
-
-foto_ofer_marc$date <- as.Date(as.character(foto_ofer_marc$date), format = "%Y%m%d")
-foto_ofer_marc <- foto_ofer_marc[order(foto_ofer_marc$date),]
-foto_ofer_marc$mes <- foto_ofer_marc$date
-rm(foto_marc_1, foto_marc_2, foto_marc_3, foto_marc_4)
-
-#transform data to month names
-month3 <- data.frame(foto_ofer_marc$mes <-month(ymd(foto_ofer_marc$mes)))
-names(month3)[1] <- "mes"
 
 #########################################################
 
-filenames4 <- list.files("/Users/wemigliari/Documents/Pós-Doutorado & Doutorado/Pós-Doc/Observatori_Metropolita/Dades/2022_Fotocasa_Oferta/dt=20220401", pattern="*.snappy.parquet", full.names=TRUE)
-foto_abril_1 <- read_parquet("/Users/wemigliari/Documents/Pós-Doutorado & Doutorado/Pós-Doc/Observatori_Metropolita/Dades/2022_Fotocasa_Oferta/dt=20220401/part-00000-tid-4954320206141668838-cf71b11e-d468-480f-9dae-186a098f76a8-129771-1.c000.snappy.parquet")
-foto_abril_2 <- read_parquet("/Users/wemigliari/Documents/Pós-Doutorado & Doutorado/Pós-Doc/Observatori_Metropolita/Dades/2022_Fotocasa_Oferta/dt=20220401/part-00001-tid-4954320206141668838-cf71b11e-d468-480f-9dae-186a098f76a8-129772-1.c000.snappy.parquet")
-foto_abril_3 <- read_parquet("/Users/wemigliari/Documents/Pós-Doutorado & Doutorado/Pós-Doc/Observatori_Metropolita/Dades/2022_Fotocasa_Oferta/dt=20220401/part-00002-tid-4954320206141668838-cf71b11e-d468-480f-9dae-186a098f76a8-129773-1.c000.snappy.parquet")
-foto_abril_4 <- read_parquet("/Users/wemigliari/Documents/Pós-Doutorado & Doutorado/Pós-Doc/Observatori_Metropolita/Dades/2022_Fotocasa_Oferta/dt=20220401/part-00003-tid-4954320206141668838-cf71b11e-d468-480f-9dae-186a098f76a8-129774-1.c000.snappy.parquet")
-foto_abril_1 <- foto_abril_1[,-c(27:58)]
-foto_abril_2 <- foto_abril_2[,-c(27:58)]
-foto_abril_3 <- foto_abril_3[,-c(27:58)]
-foto_abril_4 <- foto_abril_4[,-c(27:58)]
+filenames4 <- list.files("/Users/wemigliari/Documents/Pós-Doutorado & Doutorado/Pós-Doc/Observatori_Metropolita/Dades/2022_Fotocasa_Demanda/dt=20220401", pattern="*.snappy.parquet", full.names=TRUE)
+ldf4 <- lapply(filenames4, read_parquet)
+class(ldf4)
+foto_demanda_abril <-  as.data.frame(do.call(rbind, ldf4))
 
-foto_ofer_abril <- bind_rows(foto_abril_1, foto_abril_2, foto_abril_3, foto_abril_4)
-foto_ofer_abril <- filter(foto_ofer_abril, level1 %in%  c("Cataluña"))
-count(foto_ofer_abril, "level1")
+foto_demanda_abril <- filter(foto_demanda_abril, level1 %in%  c("Cataluña"))
+count(foto_demanda_abril, "level1")
 
-foto_ofer_abril <- foto_ofer_abril %>% 
+foto_demanda_abril$date <- as.Date(as.character(foto_demanda_abril$date), format = "%Y%m%d")
+foto_demanda_abril <- foto_demanda_abril[order(foto_demanda_abril$date),]
+
+foto_demanda_abril <- foto_demanda_abril %>% 
   filter(!grepl(c('Sell'), c(transaction_type)))
-foto_ofer_abril <- foto_ofer_abril %>% 
+foto_demanda_abril <- foto_demanda_abril %>% 
   filter(!grepl(c('Share'), c(transaction_type)))
-foto_ofer_abril <- foto_ofer_abril %>% 
-  filter(!grepl(c('Undefined'), c(transaction_type)))
-
-foto_ofer_abril$date <- as.Date(as.character(foto_ofer_abril$date), format = "%Y%m%d")
-foto_ofer_abril <- foto_ofer_abril[order(foto_ofer_abril$date),]
-foto_ofer_abril$mes <- foto_ofer_abril$date
-rm(foto_abril_1, foto_abril_2, foto_abril_3, foto_abril_4)
-
-#transform data to month names
-month4 <- data.frame(foto_ofer_abril$mes <-month(ymd(foto_ofer_abril$mes)))
-names(month4)[1] <- "mes"
 
 #########################################################
 
-filenames5 <- list.files("/Users/wemigliari/Documents/Pós-Doutorado & Doutorado/Pós-Doc/Observatori_Metropolita/Dades/2022_Fotocasa_Oferta/dt=20220501", pattern="*.snappy.parquet", full.names=TRUE)
-foto_maig_1 <- read_parquet("/Users/wemigliari/Documents/Pós-Doutorado & Doutorado/Pós-Doc/Observatori_Metropolita/Dades/2022_Fotocasa_Oferta/dt=20220501/part-00000-tid-1220695848846489815-35a68c8f-26e4-4e46-8f16-e5a96107b614-129781-1.c000.snappy.parquet")
-foto_maig_2 <- read_parquet("/Users/wemigliari/Documents/Pós-Doutorado & Doutorado/Pós-Doc/Observatori_Metropolita/Dades/2022_Fotocasa_Oferta/dt=20220501/part-00001-tid-1220695848846489815-35a68c8f-26e4-4e46-8f16-e5a96107b614-129782-1.c000.snappy.parquet")
-foto_maig_3 <- read_parquet("/Users/wemigliari/Documents/Pós-Doutorado & Doutorado/Pós-Doc/Observatori_Metropolita/Dades/2022_Fotocasa_Oferta/dt=20220501/part-00002-tid-1220695848846489815-35a68c8f-26e4-4e46-8f16-e5a96107b614-129783-1.c000.snappy.parquet")
-foto_maig_1 <- foto_maig_1[,-c(27:58)]
-foto_maig_2 <- foto_maig_2[,-c(27:58)]
-foto_maig_3 <- foto_maig_3[,-c(27:58)]
+filenames5 <- list.files("/Users/wemigliari/Documents/Pós-Doutorado & Doutorado/Pós-Doc/Observatori_Metropolita/Dades/2022_Fotocasa_Demanda/dt=20220501", pattern="*.snappy.parquet", full.names=TRUE)
+ldf5 <- lapply(filenames5, read_parquet)
+class(ldf5)
+foto_demanda_maig <-  as.data.frame(do.call(rbind, ldf5))
 
-foto_ofer_maig <- bind_rows(foto_maig_1, foto_maig_2, foto_maig_3)
-foto_ofer_maig <- filter(foto_ofer_maig, level1 %in%  c("Cataluña"))
-count(foto_ofer_maig, "level1")
+foto_demanda_maig <- filter(foto_demanda_maig, level1 %in%  c("Cataluña"))
+count(foto_demanda_maig, "level1")
 
-foto_ofer_maig <- foto_ofer_maig %>% 
+foto_demanda_maig$date <- as.Date(as.character(foto_demanda_maig$date), format = "%Y%m%d")
+foto_demanda_maig <- foto_demanda_maig[order(foto_demanda_maig$date),]
+
+foto_demanda_maig <- foto_demanda_maig %>% 
   filter(!grepl(c('Sell'), c(transaction_type)))
-foto_ofer_maig <- foto_ofer_maig %>% 
+foto_demanda_maig <- foto_demanda_maig %>% 
   filter(!grepl(c('Share'), c(transaction_type)))
-foto_ofer_maig <- foto_ofer_maig %>% 
-  filter(!grepl(c('Undefined'), c(transaction_type)))
-
-foto_ofer_maig$date <- as.Date(as.character(foto_ofer_maig$date), format = "%Y%m%d")
-foto_ofer_maig <- foto_ofer_maig[order(foto_ofer_maig$date),]
-foto_ofer_maig$mes <- foto_ofer_maig$date
-rm(foto_maig_1, foto_maig_2, foto_maig_3)
-
-#transform data to month names
-month5 <- data.frame(foto_ofer_maig$mes <-month(ymd(foto_ofer_maig$mes)))
-names(month5)[1] <- "mes"
 
 #########################################################
 
-filenames6 <- list.files("/Users/wemigliari/Documents/Pós-Doutorado & Doutorado/Pós-Doc/Observatori_Metropolita/Dades/2022_Fotocasa_Oferta/dt=20220601", pattern="*.snappy.parquet", full.names=TRUE)
-foto_juny_1 <- read_parquet("/Users/wemigliari/Documents/Pós-Doutorado & Doutorado/Pós-Doc/Observatori_Metropolita/Dades/2022_Fotocasa_Oferta/dt=20220601/part-00000-tid-671171860145196002-4837f406-50fb-473f-8f64-645ab6fa8a04-129784-1.c000.snappy.parquet")
-foto_juny_2 <- read_parquet("/Users/wemigliari/Documents/Pós-Doutorado & Doutorado/Pós-Doc/Observatori_Metropolita/Dades/2022_Fotocasa_Oferta/dt=20220601/part-00001-tid-671171860145196002-4837f406-50fb-473f-8f64-645ab6fa8a04-129785-1.c000.snappy.parquet")
-foto_juny_3 <- read_parquet("/Users/wemigliari/Documents/Pós-Doutorado & Doutorado/Pós-Doc/Observatori_Metropolita/Dades/2022_Fotocasa_Oferta/dt=20220601/part-00002-tid-671171860145196002-4837f406-50fb-473f-8f64-645ab6fa8a04-129786-1.c000.snappy.parquet")
-foto_juny_1 <- foto_juny_1[,-c(27:58)]
-foto_juny_2 <- foto_juny_2[,-c(27:58)]
-foto_juny_3 <- foto_juny_3[,-c(27:58)]
+filenames6 <- list.files("/Users/wemigliari/Documents/Pós-Doutorado & Doutorado/Pós-Doc/Observatori_Metropolita/Dades/2022_Fotocasa_Demanda/dt=20220601", pattern="*.snappy.parquet", full.names=TRUE)
+ldf6 <- lapply(filenames6, read_parquet)
+class(ldf6)
+foto_demanda_juny <-  as.data.frame(do.call(rbind, ldf6))
 
-foto_ofer_juny <- bind_rows(foto_juny_1, foto_juny_2, foto_juny_3)
-foto_ofer_juny <- filter(foto_ofer_juny, level1 %in%  c("Cataluña"))
-count(foto_ofer_juny, "level1")
+foto_demanda_juny <- filter(foto_demanda_juny, level1 %in%  c("Cataluña"))
+count(foto_demanda_juny, "level1")
 
-foto_ofer_juny <- foto_ofer_juny %>% 
+foto_demanda_juny$date <- as.Date(as.character(foto_demanda_juny$date), format = "%Y%m%d")
+foto_demanda_juny <- foto_demanda_juny[order(foto_demanda_juny$date),]
+
+foto_demanda_juny <- foto_demanda_juny %>% 
   filter(!grepl(c('Sell'), c(transaction_type)))
-foto_ofer_juny <- foto_ofer_juny %>% 
+foto_demanda_juny <- foto_demanda_juny %>% 
   filter(!grepl(c('Share'), c(transaction_type)))
-foto_ofer_juny <- foto_ofer_juny %>% 
-  filter(!grepl(c('Undefined'), c(transaction_type)))
-
-foto_ofer_juny$date <- as.Date(as.character(foto_ofer_juny$date), format = "%Y%m%d")
-foto_ofer_juny <- foto_ofer_juny[order(foto_ofer_juny$date),]
-foto_ofer_juny$mes <- foto_ofer_juny$date
-rm(foto_juny_1, foto_juny_2, foto_juny_3)
-
-#transform data to month names
-month6 <- data.frame(foto_ofer_juny$mes <-month(ymd(foto_ofer_juny$mes)))
-names(month6)[1] <- "mes"
 
 #########################################################
 
-filenames7 <- list.files("/Users/wemigliari/Documents/Pós-Doutorado & Doutorado/Pós-Doc/Observatori_Metropolita/Dades/2022_Fotocasa_Oferta/dt=20220701", pattern="*.snappy.parquet", full.names=TRUE)
-foto_juliol_1 <- read_parquet("/Users/wemigliari/Documents/Pós-Doutorado & Doutorado/Pós-Doc/Observatori_Metropolita/Dades/2022_Fotocasa_Oferta/dt=20220701/part-00000-tid-2271633444302105428-240887d0-113f-4c7c-96a2-9bb022522792-129778-1.c000.snappy.parquet")
-foto_juliol_2 <- read_parquet("/Users/wemigliari/Documents/Pós-Doutorado & Doutorado/Pós-Doc/Observatori_Metropolita/Dades/2022_Fotocasa_Oferta/dt=20220701/part-00001-tid-2271633444302105428-240887d0-113f-4c7c-96a2-9bb022522792-129779-1.c000.snappy.parquet")
-foto_juliol_3 <- read_parquet("/Users/wemigliari/Documents/Pós-Doutorado & Doutorado/Pós-Doc/Observatori_Metropolita/Dades/2022_Fotocasa_Oferta/dt=20220701/part-00002-tid-2271633444302105428-240887d0-113f-4c7c-96a2-9bb022522792-129780-1.c000.snappy.parquet")
-foto_juliol_1 <- foto_juliol_1[,-c(27:58)]
-foto_juliol_2 <- foto_juliol_2[,-c(27:58)]
-foto_juliol_3 <- foto_juliol_3[,-c(27:58)]
+filenames7 <- list.files("/Users/wemigliari/Documents/Pós-Doutorado & Doutorado/Pós-Doc/Observatori_Metropolita/Dades/2022_Fotocasa_Demanda/dt=20220701", pattern="*.snappy.parquet", full.names=TRUE)
+ldf7 <- lapply(filenames7, read_parquet)
+class(ldf7)
+foto_demanda_juliol <- as.data.frame(do.call(rbind, ldf7))
 
-foto_ofer_juliol <- bind_rows(foto_juliol_1, foto_juliol_2, foto_juliol_3)
-foto_ofer_juliol <- filter(foto_ofer_juliol, level1 %in%  c("Cataluña"))
-count(foto_ofer_juliol, "level1")
+foto_demanda_juliol <- filter(foto_demanda_juliol, level1 %in%  c("Cataluña"))
+count(foto_demanda_juliol, "level1")
 
-foto_ofer_juliol <- foto_ofer_juliol %>% 
+foto_demanda_juliol$date <- as.Date(as.character(foto_demanda_juliol$date), format = "%Y%m%d")
+foto_demanda_juliol <- foto_demanda_juliol[order(foto_demanda_juliol$date),]
+
+foto_demanda_juliol <- foto_demanda_juliol %>% 
   filter(!grepl(c('Sell'), c(transaction_type)))
-foto_ofer_juliol <- foto_ofer_juliol %>% 
+foto_demanda_juliol <- foto_demanda_juliol %>% 
   filter(!grepl(c('Share'), c(transaction_type)))
-foto_ofer_juliol <- foto_ofer_juliol %>% 
-  filter(!grepl(c('Undefined'), c(transaction_type)))
-
-foto_ofer_juliol$date <- as.Date(as.character(foto_ofer_juliol$date), format = "%Y%m%d")
-foto_ofer_juliol <- foto_ofer_juliol[order(foto_ofer_juliol$date),]
-foto_ofer_juliol$mes <- foto_ofer_juliol$date
-rm(foto_juliol_1, foto_juliol_2, foto_juliol_3)
-
-#transform data to month names
-month7 <- data.frame(foto_ofer_juliol$mes <-month(ymd(foto_ofer_juliol$mes)))
-names(month7)[1] <- "mes"
 
 #########################################################
 
-filenames8 <- list.files("/Users/wemigliari/Documents/Pós-Doutorado & Doutorado/Pós-Doc/Observatori_Metropolita/Dades/2022_Fotocasa_Oferta/dt=20220801", pattern="*.snappy.parquet", full.names=TRUE)
-foto_agost_1 <- read_parquet("/Users/wemigliari/Documents/Pós-Doutorado & Doutorado/Pós-Doc/Observatori_Metropolita/Dades/2022_Fotocasa_Oferta/dt=20220801/part-00000-tid-446181061098741977-3d812136-f179-4c73-b1a6-633d478b47b5-129775-1.c000.snappy.parquet")
-foto_agost_2 <- read_parquet("/Users/wemigliari/Documents/Pós-Doutorado & Doutorado/Pós-Doc/Observatori_Metropolita/Dades/2022_Fotocasa_Oferta/dt=20220801/part-00001-tid-446181061098741977-3d812136-f179-4c73-b1a6-633d478b47b5-129776-1.c000.snappy.parquet")
-foto_agost_3 <- read_parquet("/Users/wemigliari/Documents/Pós-Doutorado & Doutorado/Pós-Doc/Observatori_Metropolita/Dades/2022_Fotocasa_Oferta/dt=20220801/part-00002-tid-446181061098741977-3d812136-f179-4c73-b1a6-633d478b47b5-129777-1.c000.snappy.parquet")
-foto_agost_1 <- foto_agost_1[,-c(27:58)]
-foto_agost_2 <- foto_agost_2[,-c(27:58)]
-foto_agost_3 <- foto_agost_3[,-c(27:58)]
+filenames8 <- list.files("/Users/wemigliari/Documents/Pós-Doutorado & Doutorado/Pós-Doc/Observatori_Metropolita/Dades/2022_Fotocasa_Demanda/dt=20220801", pattern="*.snappy.parquet", full.names=TRUE)
+ldf8 <- lapply(filenames8, read_parquet)
+class(ldf8)
+foto_demanda_agost <- as.data.frame(do.call(rbind, ldf8))
 
-foto_ofer_agost <- bind_rows(foto_agost_1, foto_agost_2, foto_agost_3)
-foto_ofer_agost <- filter(foto_ofer_agost, level1 %in%  c("Cataluña"))
-count(foto_ofer_agost, "level1")
+foto_demanda_agost <- filter(foto_demanda_agost, level1 %in%  c("Cataluña"))
+count(foto_demanda_agost, "level1")
 
-foto_ofer_agost <- foto_ofer_agost %>% 
+foto_demanda_agost$date <- as.Date(as.character(foto_demanda_agost$date), format = "%Y%m%d")
+foto_demanda_agost <- foto_demanda_agost[order(foto_demanda_agost$date),]
+
+foto_demanda_agost <- foto_demanda_agost %>% 
   filter(!grepl(c('Sell'), c(transaction_type)))
-foto_ofer_agost <- foto_ofer_agost %>% 
+foto_demanda_agost <- foto_demanda_agost %>% 
   filter(!grepl(c('Share'), c(transaction_type)))
-foto_ofer_agost <- foto_ofer_agost %>% 
-  filter(!grepl(c('Undefined'), c(transaction_type)))
-
-foto_ofer_agost$date <- as.Date(as.character(foto_ofer_agost$date), format = "%Y%m%d")
-foto_ofer_agost <- foto_ofer_agost[order(foto_ofer_agost$date),]
-foto_ofer_agost$mes <- foto_ofer_agost$date
-rm(foto_agost_1, foto_agost_2, foto_agost_3)
-
-#transform data to month names
-month8 <- data.frame(foto_ofer_agost$mes <-month(ymd(foto_ofer_agost$mes)))
-names(month8)[1] <- "mes"
 
 #########################################################
 
-filenames9 <- list.files("/Users/wemigliari/Documents/Pós-Doutorado & Doutorado/Pós-Doc/Observatori_Metropolita/Dades/2022_Fotocasa_Oferta/dt=20220901", pattern="*.snappy.parquet", full.names=TRUE)
-foto_sept_1 <- read_parquet("/Users/wemigliari/Documents/Pós-Doutorado & Doutorado/Pós-Doc/Observatori_Metropolita/Dades/2022_Fotocasa_Oferta/dt=20220901/part-00000-tid-3922703553589852347-863b232d-d999-4c96-95b9-fcfb19ba0306-129787-1.c000.snappy.parquet")
-foto_sept_2 <- read_parquet("/Users/wemigliari/Documents/Pós-Doutorado & Doutorado/Pós-Doc/Observatori_Metropolita/Dades/2022_Fotocasa_Oferta/dt=20220901/part-00001-tid-3922703553589852347-863b232d-d999-4c96-95b9-fcfb19ba0306-129788-1.c000.snappy.parquet")
-foto_sept_3 <- read_parquet("/Users/wemigliari/Documents/Pós-Doutorado & Doutorado/Pós-Doc/Observatori_Metropolita/Dades/2022_Fotocasa_Oferta/dt=20220901/part-00002-tid-3922703553589852347-863b232d-d999-4c96-95b9-fcfb19ba0306-129789-1.c000.snappy.parquet")
-foto_sept_1 <- foto_sept_1[,-c(27:58)]
-foto_sept_2 <- foto_sept_2[,-c(27:58)]
-foto_sept_3 <- foto_sept_3[,-c(27:58)]
+filenames9 <- list.files("/Users/wemigliari/Documents/Pós-Doutorado & Doutorado/Pós-Doc/Observatori_Metropolita/Dades/2022_Fotocasa_Demanda/dt=20220901", pattern="*.snappy.parquet", full.names=TRUE)
+ldf9 <- lapply(filenames9, read_parquet)
+class(ldf9)
+foto_demanda_sept <- as.data.frame(do.call(rbind, ldf9))
 
-foto_ofer_sept <- bind_rows(foto_sept_1, foto_sept_2, foto_sept_3)
-foto_ofer_sept <- filter(foto_ofer_sept, level1 %in%  c("Cataluña"))
-count(foto_ofer_sept, "level1")
+foto_demanda_sept <- filter(foto_demanda_sept, level1 %in%  c("Cataluña"))
+count(foto_demanda_sept, "level1")
 
-foto_ofer_sept <- foto_ofer_sept %>% 
+foto_demanda_sept$date <- as.Date(as.character(foto_demanda_sept$date), format = "%Y%m%d")
+foto_demanda_sept <- foto_demanda_sept[order(foto_demanda_sept$date),]
+
+foto_demanda_sept <- foto_demanda_sept %>% 
   filter(!grepl(c('Sell'), c(transaction_type)))
-foto_ofer_sept <- foto_ofer_sept %>% 
+foto_demanda_sept <- foto_demanda_sept %>% 
   filter(!grepl(c('Share'), c(transaction_type)))
-foto_ofer_sept <- foto_ofer_sept %>% 
-  filter(!grepl(c('Undefined'), c(transaction_type)))
-
-foto_ofer_sept$date <- as.Date(as.character(foto_ofer_sept$date), format = "%Y%m%d")
-foto_ofer_sept <- foto_ofer_sept[order(foto_ofer_sept$date),]
-foto_ofer_sept$mes <- foto_ofer_sept$date
-rm(foto_sept_1, foto_sept_2, foto_sept_3)
-
-#transform data to month names
-month9 <- data.frame(foto_ofer_sept$mes <-month(ymd(foto_ofer_sept$mes)))
-names(month9)[1] <- "mes"
 
 #########################################################
 
-filenames10 <- list.files("/Users/wemigliari/Documents/Pós-Doutorado & Doutorado/Pós-Doc/Observatori_Metropolita/Dades/2022_Fotocasa_Oferta/dt=20221001", pattern="*.snappy.parquet", full.names=TRUE)
-foto_oct_1 <- read_parquet("/Users/wemigliari/Documents/Pós-Doutorado & Doutorado/Pós-Doc/Observatori_Metropolita/Dades/2022_Fotocasa_Oferta/dt=20221001/part-00000-tid-4428605285436053369-321b5625-296e-4b0c-aa5e-57e0c3f0c2fc-17606-1.c000.snappy.parquet")
-foto_oct_2 <- read_parquet("/Users/wemigliari/Documents/Pós-Doutorado & Doutorado/Pós-Doc/Observatori_Metropolita/Dades/2022_Fotocasa_Oferta/dt=20221001/part-00001-tid-4428605285436053369-321b5625-296e-4b0c-aa5e-57e0c3f0c2fc-17607-1.c000.snappy.parquet")
-foto_oct_3 <- read_parquet("/Users/wemigliari/Documents/Pós-Doutorado & Doutorado/Pós-Doc/Observatori_Metropolita/Dades/2022_Fotocasa_Oferta/dt=20221001/part-00002-tid-4428605285436053369-321b5625-296e-4b0c-aa5e-57e0c3f0c2fc-17608-1.c000.snappy.parquet")
-foto_oct_1 <- foto_oct_1[,-c(27:58)]
-foto_oct_2 <- foto_oct_2[,-c(27:58)]
-foto_oct_3 <- foto_oct_3[,-c(27:58)]
+filenames10 <- list.files("/Users/wemigliari/Documents/Pós-Doutorado & Doutorado/Pós-Doc/Observatori_Metropolita/Dades/2022_Fotocasa_Demanda/dt=20221001", pattern="*.snappy.parquet", full.names=TRUE)
+ldf10 <- lapply(filenames10, read_parquet)
+class(ldf10)
+foto_demanda_oct <- as.data.frame(do.call(rbind, ldf10))
 
-foto_ofer_oct <- bind_rows(foto_oct_1, foto_oct_2, foto_oct_3)
-foto_ofer_oct <- filter(foto_ofer_oct, level1 %in%  c("Cataluña"))
-count(foto_ofer_oct, "level1")
+foto_demanda_oct <- filter(foto_demanda_oct, level1 %in%  c("Cataluña"))
+count(foto_demanda_oct, "level1")
 
-foto_ofer_oct <- foto_ofer_oct %>% 
+foto_demanda_oct$date <- as.Date(as.character(foto_demanda_oct$date), format = "%Y%m%d")
+foto_demanda_oct <- foto_demanda_oct[order(foto_demanda_oct$date),]
+
+foto_demanda_oct <- foto_demanda_oct %>% 
   filter(!grepl(c('Sell'), c(transaction_type)))
-foto_ofer_oct <- foto_ofer_oct %>% 
+foto_demanda_oct <- foto_demanda_oct %>% 
   filter(!grepl(c('Share'), c(transaction_type)))
-foto_ofer_oct <- foto_ofer_oct %>% 
-  filter(!grepl(c('Undefined'), c(transaction_type)))
-
-foto_ofer_oct$date <- as.Date(as.character(foto_ofer_oct$date), format = "%Y%m%d")
-foto_ofer_oct <- foto_ofer_oct[order(foto_ofer_oct$date),]
-foto_ofer_oct$mes <- foto_ofer_oct$date
-rm(foto_oct_1, foto_oct_2, foto_oct_3)
-
-#transform data to month names
-month10 <- data.frame(foto_ofer_oct$mes <-month(ymd(foto_ofer_oct$mes)))
-names(month10)[1] <- "mes"
-
-
-#########################################################
-filenames11 <- list.files("/Users/wemigliari/Documents/Pós-Doutorado & Doutorado/Pós-Doc/Observatori_Metropolita/Dades/2022_Fotocasa_Oferta/dt=20221101", pattern="*.snappy.parquet", full.names=TRUE)
-foto_nov_1 <- read_parquet("/Users/wemigliari/Documents/Pós-Doutorado & Doutorado/Pós-Doc/Observatori_Metropolita/Dades/2022_Fotocasa_Oferta/dt=20221101/part-00000-tid-5542317113035899032-d97c062c-f44d-480b-a6a1-0f480852cf3e-170030-1.c000.snappy.parquet")
-foto_nov_2 <- read_parquet("/Users/wemigliari/Documents/Pós-Doutorado & Doutorado/Pós-Doc/Observatori_Metropolita/Dades/2022_Fotocasa_Oferta/dt=20221101/part-00001-tid-5542317113035899032-d97c062c-f44d-480b-a6a1-0f480852cf3e-170031-1.c000.snappy.parquet")
-foto_nov_3 <- read_parquet("/Users/wemigliari/Documents/Pós-Doutorado & Doutorado/Pós-Doc/Observatori_Metropolita/Dades/2022_Fotocasa_Oferta/dt=20221101/part-00002-tid-5542317113035899032-d97c062c-f44d-480b-a6a1-0f480852cf3e-170037-1.c000.snappy.parquet")
-foto_nov_1 <- foto_nov_1[,-c(27:58)]
-foto_nov_2 <- foto_nov_2[,-c(27:58)]
-foto_nov_3 <- foto_nov_3[,-c(27:58)]
-
-foto_ofer_nov <- bind_rows(foto_nov_1, foto_nov_2, foto_nov_3)
-foto_ofer_nov <- filter(foto_ofer_nov, level1 %in%  c("Cataluña"))
-count(foto_ofer_nov, "level1")
-
-foto_ofer_nov <- foto_ofer_nov %>% 
-  filter(!grepl(c('Sell'), c(transaction_type)))
-foto_ofer_nov <- foto_ofer_nov %>% 
-  filter(!grepl(c('Share'), c(transaction_type)))
-foto_ofer_nov <- foto_ofer_nov %>% 
-  filter(!grepl(c('Undefined'), c(transaction_type)))
-
-foto_ofer_nov$date <- as.Date(as.character(foto_ofer_nov$date), format = "%Y%m%d")
-foto_ofer_nov <- foto_ofer_nov[order(foto_ofer_nov$date),]
-foto_ofer_nov$mes <- foto_ofer_nov$date
-rm(foto_nov_1, foto_nov_2, foto_nov_3)
-
-#transform data to month names
-month11 <- data.frame(foto_ofer_nov$mes <-month(ymd(foto_ofer_nov$mes)))
-names(month11)[1] <- "mes"
 
 #########################################################
 
-filenames12 <- list.files("/Users/wemigliari/Documents/Pós-Doutorado & Doutorado/Pós-Doc/Observatori_Metropolita/Dades/2022_Fotocasa_Oferta/dt=20221201", pattern="*.snappy.parquet", full.names=TRUE)
-foto_des_1 <- read_parquet("/Users/wemigliari/Documents/Pós-Doutorado & Doutorado/Pós-Doc/Observatori_Metropolita/Dades/2022_Fotocasa_Oferta/dt=20221201/part-00000-tid-1034497095014149634-a1d51001-8449-48ce-9c4c-304cc52744f6-172001-1.c000.snappy.parquet")
-foto_des_2 <- read_parquet("/Users/wemigliari/Documents/Pós-Doutorado & Doutorado/Pós-Doc/Observatori_Metropolita/Dades/2022_Fotocasa_Oferta/dt=20221201/part-00001-tid-1034497095014149634-a1d51001-8449-48ce-9c4c-304cc52744f6-172002-1.c000.snappy.parquet")
-foto_des_3 <- read_parquet("/Users/wemigliari/Documents/Pós-Doutorado & Doutorado/Pós-Doc/Observatori_Metropolita/Dades/2022_Fotocasa_Oferta/dt=20221201/part-00002-tid-1034497095014149634-a1d51001-8449-48ce-9c4c-304cc52744f6-172003-1.c000.snappy.parquet")
-foto_des_1 <- foto_des_1[,-c(27:58)]
-foto_des_2 <- foto_des_2[,-c(27:58)]
-foto_des_3 <- foto_des_3[,-c(27:58)]
+filenames11 <- list.files("/Users/wemigliari/Documents/Pós-Doutorado & Doutorado/Pós-Doc/Observatori_Metropolita/Dades/2022_Fotocasa_Demanda/dt=20221101", pattern="*.snappy.parquet", full.names=TRUE)
+ldf11 <- lapply(filenames11, read_parquet)
+class(ldf11)
+foto_demanda_nov <- as.data.frame(do.call(rbind, ldf11))
 
-foto_ofer_des <- bind_rows(foto_des_1, foto_des_2, foto_des_3)
-foto_ofer_des <- filter(foto_ofer_des, level1 %in%  c("Cataluña"))
-count(foto_ofer_des, "level1")
+foto_demanda_nov <- filter(foto_demanda_nov, level1 %in%  c("Cataluña"))
+count(foto_demanda_nov, "level1")
 
-foto_ofer_des <- foto_ofer_des %>% 
+foto_demanda_nov$date <- as.Date(as.character(foto_demanda_nov$date), format = "%Y%m%d")
+foto_demanda_nov <- foto_demanda_nov[order(foto_demanda_nov$date),]
+
+foto_demanda_nov <- foto_demanda_nov %>% 
   filter(!grepl(c('Sell'), c(transaction_type)))
-foto_ofer_des <- foto_ofer_des %>% 
+foto_demanda_nov <- foto_demanda_nov %>% 
   filter(!grepl(c('Share'), c(transaction_type)))
-foto_ofer_des <- foto_ofer_des %>% 
-  filter(!grepl(c('Undefined'), c(transaction_type)))
-
-foto_ofer_des$date <- as.Date(as.character(foto_ofer_des$date), format = "%Y%m%d")
-foto_ofer_des <- foto_ofer_des[order(foto_ofer_des$date),]
-foto_ofer_des$mes <- foto_ofer_des$date
-rm(foto_des_1, foto_des_2, foto_des_3)
-
-#transform data to month names
-month12 <- data.frame(foto_ofer_des$mes <-month(ymd(foto_ofer_des$mes)))
-names(month12)[1] <- "mes"
 
 #########################################################
 
-foto_oferta_2022 <- bind_rows(foto_ofer_gener,
-                              foto_ofer_febrer,
-                              foto_ofer_marc,
-                              foto_ofer_abril,
-                              foto_ofer_maig,
-                              foto_ofer_juny,
-                              foto_ofer_juliol,
-                              foto_ofer_agost,
-                              foto_ofer_sept,
-                              foto_ofer_oct,
-                              foto_ofer_nov,
-                              foto_ofer_des
-)
-class(foto_oferta_2022)
-count(foto_oferta_2022, "transaction_type")
+filenames12 <- list.files("/Users/wemigliari/Documents/Pós-Doutorado & Doutorado/Pós-Doc/Observatori_Metropolita/Dades/2022_Fotocasa_Demanda/dt=20221201", pattern="*.snappy.parquet", full.names=TRUE)
+ldf12 <- lapply(filenames12, read_parquet)
+class(ldf12)
+foto_demanda_des <- as.data.frame(do.call(rbind, ldf12))
 
-foto_oferta_2022$date_posting <- as.Date(as.character(foto_oferta_2022$date_posting), format = "%Y%m%d")
+foto_demanda_des <- filter(foto_demanda_des, level1 %in%  c("Cataluña"))
+count(foto_demanda_des, "level1")
 
-write.csv(foto_oferta_2022, "/Users/wemigliari/Documents/Pós-Doutorado & Doutorado/Pós-Doc/Observatori_Metropolita/Dades/2022_Fotocasa_Oferta/extraccions_foto_oferta_2022.csv")
+foto_demanda_des$date <- as.Date(as.character(foto_demanda_des$date), format = "%Y%m%d")
+foto_demanda_des <- foto_demanda_des[order(foto_demanda_des$date),]
 
-######### Hi havia property_ids que surtien com "Sell", però, en realitat, eran "Rent". El Joffre m'ha enviat
-######### els "ids" i els he copiat en una taula d'Excel. Vaig importar la taula d'Excel i seguir els passos 
-######### de les següents línies de codi abaix:
-#ids_fotocasa <- read.xlsx("/Users/wemigliari/Documents/Pós-Doutorado & Doutorado/Pós-Doc/Observatori_Metropolita/Dades/2022_Fotocasa_Oferta/ids_fotocasa.xlsx",
-                          #sheetName = "Sheet1")
-#ids_fotocasa <- merge(test10, ids_fotocasa, by="property_id")
-#names(ids_fotocasa)[29] <- "transaction_type"
-#ids_fotocasa$transaction_type.x <- NULL
-#ids_fotocasa <- ids_fotocasa[,c(1, 2, 28, 3:27)]
-#test10 <- bind_rows(test10, ids_fotocasa)
+foto_demanda_des <- foto_demanda_des %>% 
+  filter(!grepl(c('Sell'), c(transaction_type)))
+foto_demanda_des <- foto_demanda_des %>% 
+  filter(!grepl(c('Share'), c(transaction_type)))
+
+
+#########################################################
+
+foto_demanda_2022 <- bind_rows(foto_demanda_gener,
+                              foto_demanda_febrer,
+                              foto_demanda_marc,
+                              foto_demanda_abril,
+                              foto_demanda_maig,
+                              foto_demanda_juny,
+                              foto_demanda_juliol,
+                              foto_demanda_agost,
+                              foto_demanda_sept,
+                              foto_demanda_oct,
+                              foto_demanda_nov,
+                              foto_demanda_des
+                              )
+class(foto_demanda_2022)
+count(foto_demanda_2022, "level1")
+
+write.csv(foto_demanda_2022, "/Users/wemigliari/Documents/Pós-Doutorado & Doutorado/Pós-Doc/Observatori_Metropolita/Dades/2022_Fotocasa_Demanda/extraccions_foto_demanda_2022.csv")
 
