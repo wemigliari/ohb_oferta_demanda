@@ -55,7 +55,7 @@ mitjana_surface_o_m <- aggregate(x = habit_ofer_b2022$surface,
                                  by = list(habit_ofer_b2022$property_id, 
                                            habit_ofer_b2022$district, 
                                            habit_ofer_b2022$mes),             
-                                 FUN = mean)                           
+                                 FUN = mean, round(mean(habit_ofer_b2022$surface), digits=2))                            
 
 names(mitjana_surface_o_m)[1:4] <- c("property_id", "district", "mes", "mitjana_superf_o_mes")
 
@@ -70,7 +70,7 @@ mitjana_price_o_m <- aggregate(x = habit_ofer_b2022$price,
                                by = list(habit_ofer_b2022$property_id, 
                                          habit_ofer_b2022$district, 
                                          habit_ofer_b2022$mes),             
-                               FUN = mean)                           
+                               FUN = mean, round(mean(habit_ofer_b2022$price), digits=2))                           
 
 names(mitjana_price_o_m)[1:4] <- c("property_id", "district", "mes", "mitjana_price_o_mes")
 
@@ -294,6 +294,16 @@ test111_b22$NOMMUNI<-gsub(" n´"," n'",as.character(test111_b22$NOMMUNI))
 test111_b22$NOMMUNI<-gsub(" l´"," l'",as.character(test111_b22$NOMMUNI))
 test111_b22$NOMMUNI[which(test111_b22$NOMMUNI=="Coma-ruga")] <- "el Vendrell"
 
+test111_b22$district[which(test111_b22$district=="Sants - Montjuïc")] <- "Sants-Montjuïc"
+test111_b22$district[which(test111_b22$district=="Sants Montjuïc")] <- "Sants-Montjuïc"
+test111_b22$district[which(test111_b22$district=="Sarrià - Sant Gervasi")] <- "Sarrià-Sant Gervasi"
+test111_b22$district[which(test111_b22$district=="Sarrià Sant Gervasi")] <- "Sarrià-Sant Gervasi"
+test111_b22$district[which(test111_b22$district=="Horta - Guinardò")] <- "Horta-Guinardò"
+test111_b22$district[which(test111_b22$district=="Horta Guinardó")] <- "Horta-Guinardò"
+test111_b22$district[which(test111_b22$district=="Horta - Guinardó")] <- "Horta-Guinardò"
+test111_b22$district[which(test111_b22$district=="Horta Guinardò")] <- "Horta-Guinardò"
+test111_b22$district[which(test111_b22$district=="Sants Montjuïc")] <- "Sants-Montjuïc"
+test111_b22$district[which(test111_b22$district=="Sarrià Sant Gervasi")] <- "Sarrià-Sant Gervasi"
 
 ############################################################
 ############ Tipologias Plurifamiliar & Unifamiliar
@@ -320,14 +330,6 @@ test111_b22$tipologia[which(test111_b22$tipologia=="Tríplex")] <- "Plurifamilia
 test111_b22$tipologia[which(test111_b22$tipologia=="Casa-Chalet")] <- "Unifamiliar"
 test111_b22$tipologia[which(test111_b22$tipologia=="Finca rústica")] <- "Unifamiliar"
 test111_b22$tipologia[which(test111_b22$tipologia=="Duplex")] <- "Plurifamiliar"
-
-test111_b22$district[which(test111_b22$district=="Sants - Montjuïc")] <- "Sants-Montjuïc"
-test111_b22$district[which(test111_b22$district=="Sarrià - Sant Gervasi")] <- "Sarrià-Sant Gervasi"
-test111_b22$district[which(test111_b22$district=="Horta - Guinardò")] <- "Horta-Guinardò"
-test111_b22$district[which(test111_b22$district=="Horta - Guinardó")] <- "Horta-Guinardò"
-test111_b22$district[which(test111_b22$district=="Sants Montjuïc")] <- "Sants-Montjuïc"
-test111_b22$district[which(test111_b22$district=="Sarrià Sant Gervasi")] <- "Sarrià-Sant Gervasi"
-test111_b22$district[which(test111_b22$district=="Horta Guinardó")] <- "Horta-Guinardò"
 
 2002384300000000219
 ##################################################################
@@ -357,10 +359,13 @@ preu_mitjana_mes_b2022<- test111_b22 %>%
 
 names(preu_mitjana_mes_b2022)[c(4:6)] <- c("q1_district", "q2_district", "q3_district")
 
-test_b2022 <- left_join(test_b2022, preu_mitjana_mes_b2022)%>%
-  distinct(property_id, district, mes, .keep_all =TRUE)
-test_b2022 <- left_join(test_b2022, counting_bcn_b2022)%>%
-  distinct(property_id, district, mes, .keep_all =TRUE)
+test_b2022 <- merge(test_b2022, preu_mitjana_mes_b2022,
+                    by.x = c("district", "any", "mes"),
+                    by.y = c("district", "any", "mes"), .keep_all=TRUE)
+
+test_b2022 <- merge(test_b2022, counting_bcn_b2022,
+                    by.x = c("district","mes"),
+                    by.y = c("district","mes"), .keep_all = TRUE)
 
 ####################
 
@@ -375,7 +380,6 @@ test_b2022$data_final <- (test_b2022$data1 %m+% months(1))
 
 which(test_b2022$date_posting > test_b2022$primera_data)
 which(is.na(test_b2022$date_posting))
-na_date <- as.data.frame(ddply(test_b2022, .(property_id), summarize, nNA=sum(is.na(date_posting_calcul))))
 
 test_b2022 <- test_b2022%>%
   group_by(property_id, district)%>%

@@ -53,11 +53,12 @@ mitjana_surface_o_m <- aggregate(x = habit_ofer_2022$surface,
                                  by = list(habit_ofer_2022$property_id, 
                                            habit_ofer_2022$municipality, 
                                            habit_ofer_2022$mes),             
-                                 FUN = mean)                           
+                                 FUN = mean,round(mean(habit_ofer_2022$surface), digits=2))                            
 
 names(mitjana_surface_o_m)[1:4] <- c("property_id", "municipality", "mes", "mitjana_superf_o_mes")
 
-test111_22 <- merge(x=habit_ofer_2022, y=mitjana_surface_o_m, by.x=c("property_id","municipality", "mes"), 
+test111_22 <- merge(x=habit_ofer_2022, y=mitjana_surface_o_m, 
+                    by.x=c("property_id","municipality", "mes"), 
                     by.y=c("property_id","municipality", "mes"))
 
 ##################################################################
@@ -68,7 +69,7 @@ mitjana_price_o_m <- aggregate(x = habit_ofer_2022$price,
                                by = list(habit_ofer_2022$property_id, 
                                          habit_ofer_2022$municipality, 
                                          habit_ofer_2022$mes),             
-                               FUN = mean)                           
+                               FUN = mean,round(mean(habit_ofer_2022$price), digits=2))                            
 
 names(mitjana_price_o_m)[1:4] <- c("property_id", "municipality", "mes", "mitjana_price_o_mes")
 
@@ -292,6 +293,16 @@ test111_22$NOMMUNI<-gsub(" n´"," n'",as.character(test111_22$NOMMUNI))
 test111_22$NOMMUNI<-gsub(" l´"," l'",as.character(test111_22$NOMMUNI))
 test111_22$NOMMUNI[which(test111_22$NOMMUNI=="Coma-ruga")] <- "el Vendrell"
 
+test111_22$district[which(test111_22$district=="Sants - Montjuïc")] <- "Sants-Montjuïc"
+test111_22$district[which(test111_22$district=="Sants Montjuïc")] <- "Sants-Montjuïc"
+test111_22$district[which(test111_22$district=="Sarrià - Sant Gervasi")] <- "Sarrià-Sant Gervasi"
+test111_22$district[which(test111_22$district=="Sarrià Sant Gervasi")] <- "Sarrià-Sant Gervasi"
+test111_22$district[which(test111_22$district=="Horta - Guinardò")] <- "Horta-Guinardò"
+test111_22$district[which(test111_22$district=="Horta Guinardó")] <- "Horta-Guinardò"
+test111_22$district[which(test111_22$district=="Horta - Guinardó")] <- "Horta-Guinardò"
+test111_22$district[which(test111_22$district=="Horta Guinardò")] <- "Horta-Guinardò"
+test111_22$district[which(test111_22$district=="Sants Montjuïc")] <- "Sants-Montjuïc"
+test111_22$district[which(test111_22$district=="Sarrià Sant Gervasi")] <- "Sarrià-Sant Gervasi"
 
 ############################################################
 ############ Tipologias Plurifamiliar & Unifamiliar
@@ -318,14 +329,6 @@ test111_22$tipologia[which(test111_22$tipologia=="Tríplex")] <- "Plurifamiliar"
 test111_22$tipologia[which(test111_22$tipologia=="Casa-Chalet")] <- "Unifamiliar"
 test111_22$tipologia[which(test111_22$tipologia=="Finca rústica")] <- "Unifamiliar"
 test111_22$tipologia[which(test111_22$tipologia=="Duplex")] <- "Plurifamiliar"
-
-test111_22$district[which(test111_22$district=="Sants - Montjuïc")] <- "Sants-Montjuïc"
-test111_22$district[which(test111_22$district=="Sarrià - Sant Gervasi")] <- "Sarrià-Sant Gervasi"
-test111_22$district[which(test111_22$district=="Horta - Guinardò")] <- "Horta-Guinardò"
-test111_22$district[which(test111_22$district=="Horta - Guinardó")] <- "Horta-Guinardò"
-test111_22$district[which(test111_22$district=="Sants Montjuïc")] <- "Sants-Montjuïc"
-test111_22$district[which(test111_22$district=="Sarrià Sant Gervasi")] <- "Sarrià-Sant Gervasi"
-test111_22$district[which(test111_22$district=="Horta Guinardó")] <- "Horta-Guinardò"
 
 2002384300000000219
 ##################################################################
@@ -355,10 +358,13 @@ preu_mitjana_mes_2022<- test111_22 %>%
 
 names(preu_mitjana_mes_2022)[c(4:6)] <- c("q1_muni", "q2_muni", "q3_muni")
 
-test_2022 <- left_join(test_2022, preu_mitjana_mes_2022)%>%
-  distinct(property_id, municipality, mes, .keep_all =TRUE)
-test_2022 <- left_join(test_2022, counting_muni_2022)%>%
-  distinct(property_id, municipality, mes, .keep_all =TRUE)
+test_2022 <- merge(test_2022, preu_mitjana_mes_2022,
+                   by.x= c("municipality", "any", "mes"),
+                   by.y= c("municipality", "any", "mes"), .keep_all = TRUE)
+
+test_2022 <- merge(test_2022, counting_muni_2022,
+                   by.x = c("municipality","mes"),
+                   by.y = c("municipality","mes"), .keep_all = TRUE)
 
 ####################
 
@@ -373,7 +379,6 @@ test_2022$data_final <- (test_2022$data1 %m+% months(1))
 
 which(test_2022$date_posting > test_2022$primera_data)
 which(is.na(test_2022$date_posting))
-na_date <- as.data.frame(ddply(test_2022, .(property_id), summarize, nNA=sum(is.na(date_posting_calcul))))
 
 test_2022 <- test_2022%>%
   group_by(property_id, municipality)%>%
