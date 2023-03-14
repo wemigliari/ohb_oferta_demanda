@@ -7,11 +7,12 @@ library(plyr)
 library(dplyr)
 library(purrr)
 library(lubridate)
+library(data.table)
 
 ###################################
 ####### Oferta Fotocasa 2019
 ###################################
-catalunya_noms <- read.xlsx("/Volumes/OHB/04.Laboratoris/LAB201703-Lloguer/04.Dades/Joffre_Wellington/Catalunya_noms_oficials.xlsx",
+catalunya_noms <- read.xlsx("/Users/wemigliari/Documents/Pós-Doutorado & Doutorado/Pós-Doc/Observatori_Metropolita/Dades/Catalunya_noms_oficials.xlsx",
                             sheetName = "Sheet1")
 #To disable the scientific notation in R, pass the following argument: 
 
@@ -54,7 +55,6 @@ foto_ofer_2019$mes <- foto_ofer_2019$date
 data.frame(foto_ofer_2019$mes <-month(ymd(foto_ofer_2019$mes)))
 foto_ofer_2019$date <- as.Date(foto_ofer_2019$date)
 foto_ofer_2019$any <- format(as.Date(foto_ofer_2019$date, format="%Y/%m/%d"),"%Y")
-library(data.table)
 foto_ofer_2019 <- data.table(foto_ofer_2019)
 foto_ofer_2019 <- foto_ofer_2019%>%
   arrange(property_id, date, date_posting)
@@ -68,7 +68,7 @@ mitjana_surface_o_m <- aggregate(x = foto_ofer_2019$surface,
                                  by = list(foto_ofer_2019$property_id, 
                                            foto_ofer_2019$municipality, 
                                            foto_ofer_2019$mes),             
-                                 FUN = mean)                           
+                                 FUN = mean,round(mean(foto_ofer_2019$surface), digits=2))                           
 
 names(mitjana_surface_o_m)[1:4] <- c("property_id", "municipality", "mes", "mitjana_superf_o_mes")
 
@@ -79,11 +79,11 @@ test111_19 <- merge(x=foto_ofer_2019, y=mitjana_surface_o_m, by.x=c("property_id
 ############## Mitjanes de preu
 ##################################################################
 
-mitjana_price_o_m <- aggregate(x = test111_19$price,    
+mitjana_price_o_m <- aggregate(x = foto_ofer_2019$price,    
                                by = list(foto_ofer_2019$property_id, 
                                          foto_ofer_2019$municipality, 
                                          foto_ofer_2019$mes),             
-                               FUN = mean)                           
+                               FUN = mean,round(mean(foto_ofer_2019$price), digits=2))                           
 
 names(mitjana_price_o_m)[1:4] <- c("property_id", "municipality", "mes", "mitjana_price_o_mes")
 
@@ -136,8 +136,8 @@ test11b_19_ld <- test11b_19_ld %>%
   mutate(ultima_data = date)
 test11b_19_ld <- test11b_19_ld[,c(1,2,3,5)]
 
-test111_19_pm_ud <- merge(x=test11a_19_fd, y=test11b_19_ld, by.x=c("property_id","municipality", "mes"), 
-                          by.y=c("property_id","municipality", "mes"))
+test111_19_pm_ud <- merge(x=test11a_19_fd, y=test11b_19_ld, by.x=c("property_id","municipality"), 
+                          by.y=c("property_id","municipality"))
 
 
 #Adding date posting
@@ -150,8 +150,8 @@ test11b_19_dp <- test11b_19_dp %>%
   mutate(date_posting_calcul = date_posting)
 test11b_19_dp <- test11b_19_dp[,c(1,2,3,5)]
 
-test111_19_pm_ud_dp <- merge(x=test111_19_pm_ud, y=test11b_19_dp, by.x=c("property_id","municipality", "mes"), 
-                             by.y=c("property_id","municipality", "mes"))
+test111_19_pm_ud_dp <- merge(x=test111_19_pm_ud, y=test11b_19_dp, by.x=c("property_id","municipality"), 
+                             by.y=c("property_id","municipality"))
 
 test111_19_pm_ud_dp <- data.frame(test111_19_pm_ud_dp$property_id, 
                                   test111_19_pm_ud_dp$municipality, 
@@ -338,11 +338,18 @@ test111_19$NOMMUNI[which(test111_19$NOMMUNI=="l'Ametlla de Mar ")] <- "l'Ametlla
 test111_19$NOMMUNI[which(test111_19$NOMMUNI=="Sant Carles de la Ràpita")] <- "la Ràpita"
 
 test111_19$district[which(test111_19$district=="Sants - Montjuïc")] <- "Sants-Montjuïc"
+test111_19$district[which(test111_19$district=="Sants Montjuïc")] <- "Sants-Montjuïc"
 test111_19$district[which(test111_19$district=="Sarrià - Sant Gervasi")] <- "Sarrià-Sant Gervasi"
+test111_19$district[which(test111_19$district=="Sarrià Sant Gervasi")] <- "Sarrià-Sant Gervasi"
 test111_19$district[which(test111_19$district=="Horta - Guinardò")] <- "Horta-Guinardò"
+test111_19$district[which(test111_19$district=="Horta Guinardó")] <- "Horta-Guinardò"
+test111_19$district[which(test111_19$district=="Horta - Guinardó")] <- "Horta-Guinardò"
+test111_19$district[which(test111_19$district=="Horta Guinardò")] <- "Horta-Guinardò"
 test111_19$district[which(test111_19$district=="Sants Montjuïc")] <- "Sants-Montjuïc"
 test111_19$district[which(test111_19$district=="Sarrià Sant Gervasi")] <- "Sarrià-Sant Gervasi"
-test111_19$district[which(test111_19$district=="Horta Guinardó")] <- "Horta-Guinardò"
+
+
+count(test111_19, "district")
 
 ############################################################
 ############ Tipologias Plurifamiliar & Unifamiliar
@@ -369,11 +376,6 @@ test111_19$tipologia[which(test111_19$tipologia=="Casa-Chalet")] <- "Unifamiliar
 test111_19$tipologia[which(test111_19$tipologia=="Finca rústica")] <- "Unifamiliar"
 test111_19$tipologia[which(test111_19$tipologia=="Duplex")] <- "Plurifamiliar"
 
-test111_19$district[which(test111_19$district=="Sants Montjuïc")] <- "Sants-Montjuïc"
-test111_19$district[which(test111_19$district=="Sarrià Sant Gervasi")] <- "Sarrià-Sant Gervasi"
-test111_19$district[which(test111_19$district=="Horta Guinardó")] <- "Horta-Guinardò"
-test111_19$district[which(test111_19$district=="Horta - Guinardó")] <- "Horta-Guinardò"
-
 count(test111_19, "tipologia")
 
 ##################################################################
@@ -388,7 +390,7 @@ test111_19 <- join(test111_19, catalunya_noms, by = "NOMMUNI")
 
 test_2019_f <- test111_19
 counting_muni_2019 <- test_2019_f %>% 
-  count(c("municipality", "mes"))
+  count(c("NOMMUNI", "mes"))
 names(counting_muni_2019)[3] <- "freq_muni_mes"
 
 q = c(.25, .5, .75)
@@ -398,15 +400,18 @@ p_funs <- map(q, ~partial(quantile, probs = .x, na.rm = TRUE)) %>%
 p_funs
 
 preu_mitjana_mes_2019 <- test111_19 %>% 
-  group_by(municipality, any, mes) %>% 
+  group_by(NOMMUNI, any, mes) %>% 
   summarize_at(vars(preu_m2_mes), funs(!!!p_funs))
 
 names(preu_mitjana_mes_2019)[c(4:6)] <- c("q1_muni", "q2_muni", "q3_muni")
 
-test_2019_f <- left_join(test_2019_f, preu_mitjana_mes_2019)%>%
-  distinct(property_id, municipality, mes, .keep_all =TRUE)
-test_2019_f <- left_join(test_2019_f, counting_muni_2019)%>%
-  distinct(property_id, municipality, mes, .keep_all =TRUE)
+test_2019_f <- merge(test_2019_f, preu_mitjana_mes_2019,
+                     by.x= c("NOMMUNI", "any", "mes"),
+                     by.y= c("NOMMUNI", "any", "mes"), .keep_all = TRUE)
+
+test_2019_f <- merge(test_2019_f, counting_muni_2019,
+                     by.x = c("NOMMUNI","mes"),
+                     by.y = c("NOMMUNI","mes"), .keep_all = TRUE)
 
 ####################
 
@@ -421,7 +426,6 @@ test_2019_f$data_final <- (test_2019_f$data1 %m+% months(1))
 
 which(test_2019_f$date_posting > test_2019_f$primera_data)
 which(is.na(test_2019_f$date_posting))
-na_date <- as.data.frame(ddply(test_2019_f, .(property_id), summarize, nNA=sum(is.na(date_posting_calcul))))
 
 test_2019_f <- test_2019_f%>%
   group_by(property_id, municipality)%>%
@@ -436,7 +440,6 @@ which(test_2019_f$date_posting_calcul > test_2019_f$primera_data)
 which(is.na(test_2019_f$date_posting_calcul))
 149540709
 
-library(xlsx)
 write_csv(test_2019_f, "/Users/wemigliari/Documents/Pós-Doutorado & Doutorado/Pós-Doc/Observatori_Metropolita/Dades/2019_Fotocasa_Oferta/tractament_foto_oferta_2019.csv")
 
 
