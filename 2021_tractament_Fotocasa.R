@@ -69,7 +69,7 @@ mitjana_surface_o_m <- aggregate(x = foto_ofer_2021$surface,
                                  by = list(foto_ofer_2021$property_id, 
                                            foto_ofer_2021$municipality, 
                                            foto_ofer_2021$mes),             
-                                 FUN = mean)                           
+                                 FUN = mean, round(mean(foto_ofer_2021$surface), digits=2))                           
 
 names(mitjana_surface_o_m)[1:4] <- c("property_id", "municipality", "mes", "mitjana_superf_o_mes")
 
@@ -80,11 +80,11 @@ test111_21 <- merge(x=foto_ofer_2021, y=mitjana_surface_o_m, by.x=c("property_id
 ############## Mitjanes de preu
 ##################################################################
 
-mitjana_price_o_m <- aggregate(x = test111_21$price,    
+mitjana_price_o_m <- aggregate(x = foto_ofer_2021$price,    
                                by = list(foto_ofer_2021$property_id, 
                                          foto_ofer_2021$municipality, 
                                          foto_ofer_2021$mes),             
-                               FUN = mean)                           
+                               FUN = mean, round(mean(foto_ofer_2021$price), digits=2))                           
 
 names(mitjana_price_o_m)[1:4] <- c("property_id", "municipality", "mes", "mitjana_price_o_mes")
 
@@ -137,8 +137,8 @@ test11b_21_ld <- test11b_21_ld %>%
   mutate(ultima_data = date)
 test11b_21_ld <- test11b_21_ld[,c(1,2,3,5)]
 
-test111_21_pm_ud <- merge(x=test11a_21_fd, y=test11b_21_ld, by.x=c("property_id","municipality", "mes"), 
-                          by.y=c("property_id","municipality", "mes"))
+test111_21_pm_ud <- merge(x=test11a_21_fd, y=test11b_21_ld, by.x=c("property_id","municipality"), 
+                          by.y=c("property_id","municipality"))
 
 
 #Adding date posting
@@ -151,8 +151,8 @@ test11b_21_dp <- test11b_21_dp %>%
   mutate(date_posting_calcul = date_posting)
 test11b_21_dp <- test11b_21_dp[,c(1,2,3,5)]
 
-test111_21_pm_ud_dp <- merge(x=test111_21_pm_ud, y=test11b_21_dp, by.x=c("property_id","municipality", "mes"), 
-                             by.y=c("property_id","municipality", "mes"))
+test111_21_pm_ud_dp <- merge(x=test111_21_pm_ud, y=test11b_21_dp, by.x=c("property_id","municipality"), 
+                             by.y=c("property_id","municipality"))
 
 test111_21_pm_ud_dp <- data.frame(test111_21_pm_ud_dp$property_id, 
                                   test111_21_pm_ud_dp$municipality, 
@@ -339,11 +339,15 @@ test111_21$NOMMUNI[which(test111_21$NOMMUNI=="l'Ametlla de Mar ")] <- "l'Ametlla
 test111_21$NOMMUNI[which(test111_21$NOMMUNI=="Sant Carles de la Ràpita")] <- "la Ràpita"
 
 test111_21$district[which(test111_21$district=="Sants - Montjuïc")] <- "Sants-Montjuïc"
+test111_21$district[which(test111_21$district=="Sants Montjuïc")] <- "Sants-Montjuïc"
 test111_21$district[which(test111_21$district=="Sarrià - Sant Gervasi")] <- "Sarrià-Sant Gervasi"
+test111_21$district[which(test111_21$district=="Sarrià Sant Gervasi")] <- "Sarrià-Sant Gervasi"
 test111_21$district[which(test111_21$district=="Horta - Guinardò")] <- "Horta-Guinardò"
+test111_21$district[which(test111_21$district=="Horta Guinardó")] <- "Horta-Guinardò"
+test111_21$district[which(test111_21$district=="Horta - Guinardó")] <- "Horta-Guinardò"
+test111_21$district[which(test111_21$district=="Horta Guinardò")] <- "Horta-Guinardò"
 test111_21$district[which(test111_21$district=="Sants Montjuïc")] <- "Sants-Montjuïc"
 test111_21$district[which(test111_21$district=="Sarrià Sant Gervasi")] <- "Sarrià-Sant Gervasi"
-test111_21$district[which(test111_21$district=="Horta Guinardó")] <- "Horta-Guinardò"
 
 ############################################################
 ############ Tipologias Plurifamiliar & Unifamiliar
@@ -370,11 +374,6 @@ test111_21$tipologia[which(test111_21$tipologia=="Casa-Chalet")] <- "Unifamiliar
 test111_21$tipologia[which(test111_21$tipologia=="Finca rústica")] <- "Unifamiliar"
 test111_21$tipologia[which(test111_21$tipologia=="Duplex")] <- "Plurifamiliar"
 
-test111_21$district[which(test111_21$district=="Sants Montjuïc")] <- "Sants-Montjuïc"
-test111_21$district[which(test111_21$district=="Sarrià Sant Gervasi")] <- "Sarrià-Sant Gervasi"
-test111_21$district[which(test111_21$district=="Horta Guinardó")] <- "Horta-Guinardò"
-test111_21$district[which(test111_21$district=="Horta - Guinardó")] <- "Horta-Guinardò"
-
 count(test111_21, "tipologia")
 
 ##################################################################
@@ -389,7 +388,7 @@ test111_21 <- join(test111_21, catalunya_noms, by = "NOMMUNI")
 
 test_2021_f <- test111_21
 counting_muni_2021 <- test_2021_f %>% 
-  count(c("municipality", "mes"))
+  count(c("NOMMUNI", "mes"))
 names(counting_muni_2021)[3] <- "freq_muni_mes"
 
 q = c(.25, .5, .75)
@@ -399,15 +398,18 @@ p_funs <- map(q, ~partial(quantile, probs = .x, na.rm = TRUE)) %>%
 p_funs
 
 preu_mitjana_mes_2021 <- test111_21 %>% 
-  group_by(municipality, any, mes) %>% 
+  group_by(NOMMUNI, any, mes) %>% 
   summarize_at(vars(preu_m2_mes), funs(!!!p_funs))
 
 names(preu_mitjana_mes_2021)[c(4:6)] <- c("q1_muni", "q2_muni", "q3_muni")
 
-test_2021_f <- left_join(test_2021_f, preu_mitjana_mes_2021)%>%
-  distinct(property_id, municipality, mes, .keep_all =TRUE)
-test_2021_f <- left_join(test_2021_f, counting_muni_2021)%>%
-  distinct(property_id, municipality, mes, .keep_all =TRUE)
+test_2021_f <- merge(test_2021_f, preu_mitjana_mes_2021,
+                     by.x = c("NOMMUNI", "any", "mes"),
+                     by.y = c("NOMMUNI", "any", "mes"), .keep_all=TRUE)
+
+test_2021_f <- merge(test_2021_f, counting_muni_2021,
+                     by.x = c("NOMMUNI","mes"),
+                     by.y = c("NOMMUNI","mes"), .keep_all = TRUE)
 
 ####################
 
@@ -422,7 +424,6 @@ test_2021_f$data_final <- (test_2021_f$data1 %m+% months(1))
 
 which(test_2021_f$date_posting > test_2021_f$primera_data)
 which(is.na(test_2021_f$date_posting))
-na_date <- as.data.frame(ddply(test_2021_f, .(property_id), summarize, nNA=sum(is.na(date_posting_calcul))))
 
 test_2021_f <- test_2021_f%>%
   group_by(property_id, municipality)%>%
@@ -436,6 +437,5 @@ test_2021_f <- test_2021_f%>%
 which(test_2021_f$date_posting_calcul > test_2021_f$primera_data)
 which(is.na(test_2021_f$date_posting_calcul))
 
-library(xlsx)
 write_csv(test_2021_f, "/Users/wemigliari/Documents/Pós-Doutorado & Doutorado/Pós-Doc/Observatori_Metropolita/Dades/2021_Fotocasa_Oferta/tractament_foto_oferta_2021.csv")
 
