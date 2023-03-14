@@ -53,11 +53,12 @@ mitjana_surface_o_m <- aggregate(x = habit_ofer_2019$surface,
                                  by = list(habit_ofer_2019$property_id, 
                                            habit_ofer_2019$municipality, 
                                            habit_ofer_2019$mes),             
-                                 FUN = mean)                           
+                                 FUN = mean,round(mean(habit_ofer_2019$surface), digits=2))                            
 
 names(mitjana_surface_o_m)[1:4] <- c("property_id", "municipality", "mes", "mitjana_superf_o_mes")
 
-test111_19 <- merge(x=habit_ofer_2019, y=mitjana_surface_o_m, by.x=c("property_id","municipality", "mes"), 
+test111_19 <- merge(x=habit_ofer_2019, y=mitjana_surface_o_m, 
+                    by.x=c("property_id","municipality", "mes"), 
                     by.y=c("property_id","municipality", "mes"))
 
 ##################################################################
@@ -68,7 +69,7 @@ mitjana_price_o_m <- aggregate(x = habit_ofer_2019$price,
                                by = list(habit_ofer_2019$property_id, 
                                          habit_ofer_2019$municipality, 
                                          habit_ofer_2019$mes),             
-                               FUN = mean)                           
+                               FUN = mean,round(mean(habit_ofer_2019$price), digits=2))                            
 
 names(mitjana_price_o_m)[1:4] <- c("property_id", "municipality", "mes", "mitjana_price_o_mes")
 
@@ -84,6 +85,7 @@ test111_19 <- merge(x=test111_19, y=mitjana_price_o_m,
 ##################################################################
 
 test111_19$preu_m2_mes <- test111_19$mitjana_price_o_mes/test111_19$mitjana_superf_o_mes
+##################################################################
 
 test111_19 <- filter(test111_19, price >= 10 & price <= 10000)
 test111_19 <- filter(test111_19, surface >= 10 & surface <= 10000)
@@ -320,12 +322,15 @@ test111_19$tipologia[which(test111_19$tipologia=="Finca rústica")] <- "Unifamil
 test111_19$tipologia[which(test111_19$tipologia=="Duplex")] <- "Plurifamiliar"
 
 test111_19$district[which(test111_19$district=="Sants - Montjuïc")] <- "Sants-Montjuïc"
+test111_19$district[which(test111_19$district=="Sants Montjuïc")] <- "Sants-Montjuïc"
 test111_19$district[which(test111_19$district=="Sarrià - Sant Gervasi")] <- "Sarrià-Sant Gervasi"
+test111_19$district[which(test111_19$district=="Sarrià Sant Gervasi")] <- "Sarrià-Sant Gervasi"
 test111_19$district[which(test111_19$district=="Horta - Guinardò")] <- "Horta-Guinardò"
+test111_19$district[which(test111_19$district=="Horta Guinardó")] <- "Horta-Guinardò"
 test111_19$district[which(test111_19$district=="Horta - Guinardó")] <- "Horta-Guinardò"
+test111_19$district[which(test111_19$district=="Horta Guinardò")] <- "Horta-Guinardò"
 test111_19$district[which(test111_19$district=="Sants Montjuïc")] <- "Sants-Montjuïc"
 test111_19$district[which(test111_19$district=="Sarrià Sant Gervasi")] <- "Sarrià-Sant Gervasi"
-test111_19$district[which(test111_19$district=="Horta Guinardó")] <- "Horta-Guinardò"
 
 2002384300000000219
 ##################################################################
@@ -355,10 +360,13 @@ preu_mitjana_mes_2019<- test111_19 %>%
 
 names(preu_mitjana_mes_2019)[c(4:6)] <- c("q1_muni", "q2_muni", "q3_muni")
 
-test_2019 <- left_join(test_2019, preu_mitjana_mes_2019)%>%
-  distinct(property_id, municipality, mes, .keep_all =TRUE)
-test_2019 <- left_join(test_2019, counting_muni_2019)%>%
-  distinct(property_id, municipality, mes, .keep_all =TRUE)
+test_2019 <- merge(test_2019, preu_mitjana_mes_2019,
+                     by.x= c("municipality", "any", "mes"),
+                     by.y= c("municipality", "any", "mes"), .keep_all = TRUE)
+
+test_2019 <- merge(test_2019, counting_muni_2019,
+                     by.x = c("municipality","mes"),
+                     by.y = c("municipality","mes"), .keep_all = TRUE)
 
 ####################
 
@@ -373,7 +381,6 @@ test_2019$data_final <- (test_2019$data1 %m+% months(1))
 
 which(test_2019$date_posting > test_2019$primera_data)
 which(is.na(test_2019$date_posting))
-na_date <- as.data.frame(ddply(test_2019, .(property_id), summarize, nNA=sum(is.na(date_posting_calcul))))
 
 test_2019 <- test_2019%>%
   group_by(property_id, municipality)%>%
