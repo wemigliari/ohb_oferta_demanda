@@ -37,7 +37,6 @@ foto_demanda_series_tract$level6 <- NULL
 foto_demanda_series_tract$level8 <- NULL
 
 names(foto_demanda_series_tract)[5] <- "property_id"
-
 names(foto_demanda_series_tract)[6] <- "municipality"
 names(foto_demanda_series_tract)[7] <- "district"
 
@@ -211,11 +210,16 @@ foto_demanda_series_tract$NOMMUNI[which(foto_demanda_series_tract$NOMMUNI=="l'Am
 foto_demanda_series_tract$NOMMUNI[which(foto_demanda_series_tract$NOMMUNI=="Sant Carles de la Ràpita")] <- "la Ràpita"
 
 foto_demanda_series_tract$district[which(foto_demanda_series_tract$district=="Sants - Montjuïc")] <- "Sants-Montjuïc"
+foto_demanda_series_tract$district[which(foto_demanda_series_tract$district=="Sants Montjuïc")] <- "Sants-Montjuïc"
 foto_demanda_series_tract$district[which(foto_demanda_series_tract$district=="Sarrià - Sant Gervasi")] <- "Sarrià-Sant Gervasi"
-foto_demanda_series_tract$district[which(foto_demanda_series_tract$district=="Horta - Guinardò")] <- "Horta-Guinardò"
+foto_demanda_series_tract$district[which(foto_demanda_series_tract$district=="Sarrià Sant Gervasi")] <- "Sarrià-Sant Gervasi"
+foto_demanda_series_tract$district[which(foto_demanda_series_tract$district=="Horta - Guinardò")] <- "Horta-Guinardó"
+foto_demanda_series_tract$district[which(foto_demanda_series_tract$district=="Horta Guinardó")] <- "Horta-Guinardó"
+foto_demanda_series_tract$district[which(foto_demanda_series_tract$district=="Horta - Guinardó")] <- "Horta-Guinardó"
+foto_demanda_series_tract$district[which(foto_demanda_series_tract$district=="Horta Guinardò")] <- "Horta-Guinardó"
 foto_demanda_series_tract$district[which(foto_demanda_series_tract$district=="Sants Montjuïc")] <- "Sants-Montjuïc"
 foto_demanda_series_tract$district[which(foto_demanda_series_tract$district=="Sarrià Sant Gervasi")] <- "Sarrià-Sant Gervasi"
-foto_demanda_series_tract$district[which(foto_demanda_series_tract$district=="Horta Guinardó")] <- "Horta-Guinardò"
+foto_demanda_series_tract$district[which(foto_demanda_series_tract$district=="Horta-Guinardò")] <- "Horta-Guinardó"
 
 
 foto_demanda_series_tract$NOMMUNI[which(foto_demanda_series_tract$NOMMUNI=="Bellaterra")] <- "Cerdanyola del Vallès"
@@ -287,11 +291,11 @@ foto_demanda_series_tract <- join(foto_demanda_series_tract, catalunya_noms, by 
 
 foto_demanda_series_tract <- foto_demanda_series_tract[!is.na(foto_demanda_series_tract$NOMMUNI),]
 
-na_foto_demanda_muni <- as.data.frame(is.na(foto_demanda_series_tract$CODIMUNI))
-na_foto_demanda_muni <- cbind(na_foto_demanda_muni, foto_demanda_series_tract$NOMMUNI, foto_demanda_series_tract$municipality)
-na_foto_demanda_muni <- na_foto_demanda_muni%>%group_by(`is.na(foto_demanda_series_tract$CODIMUNI)`,
-                                                        `foto_demanda_series_tract$NOMMUNI`)%>%
-                                                        filter(row_number()==1)
+#na_foto_demanda_muni <- as.data.frame(is.na(foto_demanda_series_tract$CODIMUNI))
+#na_foto_demanda_muni <- cbind(na_foto_demanda_muni, foto_demanda_series_tract$NOMMUNI, foto_demanda_series_tract$municipality)
+#na_foto_demanda_muni <- na_foto_demanda_muni%>%group_by(`is.na(foto_demanda_series_tract$CODIMUNI)`,
+                                                        #`foto_demanda_series_tract$NOMMUNI`)%>%
+  #filter(row_number()==1)
 
 
 ##################################################################
@@ -311,12 +315,14 @@ leads_mensuals <- arrange(leads_mensuals, leads_mensuals)
 leads_mensuals_1 <- leads_mensuals
 
 leads_mensuals_1 <- leads_mensuals_1%>%
-  group_by(property_id, NOMMUNI, any, mes)%>%
+  group_by(property_id, NOMMUNI, mes, any)%>%
   filter(row_number()==n())
 
+leads_mensuals_1 <- leads_mensuals_1[order(leads_mensuals_1$leads_mensuals),]
+
 foto_demanda_series_tract <- merge(x=foto_demanda_series_tract, y=leads_mensuals_1, 
-                             by.x = c("property_id","NOMMUNI", "mes", "any"),
-                             by.y = c("property_id","NOMMUNI", "mes", "any"))
+                                   by.x = c("property_id","NOMMUNI", "mes", "any"),
+                                   by.y = c("property_id","NOMMUNI", "mes", "any"))
 
 ##### Aggregating the data per month 
 foto_demanda_series_tract <- foto_demanda_series_tract%>%
@@ -324,3 +330,4 @@ foto_demanda_series_tract <- foto_demanda_series_tract%>%
   filter(row_number()==1)
 
 write.csv(foto_demanda_series_tract, "/Users/wemigliari/Documents/Pós-Doutorado & Doutorado/Pós-Doc/Observatori_Metropolita/Dades/tractament_data_series_demanda_fotocasa.csv")
+
