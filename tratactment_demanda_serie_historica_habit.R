@@ -7,6 +7,7 @@ library(plyr)
 library(dplyr)
 library(purrr)
 library(lubridate)
+library(data.table)
 
 ##########################################
 ####### Demanda Habitaclia Serie Historica
@@ -46,6 +47,7 @@ names(habit_demanda_series_tract)[6] <- "price_d"
 
 habit_demanda_series_tract <- filter(habit_demanda_series_tract, surface_d >= 10 & surface_d <= 10000)
 habit_demanda_series_tract <- filter(habit_demanda_series_tract, price_d >= 10 & price_d <= 10000)
+
 
 habit_demanda_series_tract$NOMMUNI <- habit_demanda_series_tract$municipality
 
@@ -190,22 +192,26 @@ habit_demanda_series_tract$NOMMUNI[which(habit_demanda_series_tract$NOMMUNI=="Se
 habit_demanda_series_tract$NOMMUNI[which(habit_demanda_series_tract$NOMMUNI=="Tamariu")] <- "Palafrugell"
 
 habit_demanda_series_tract$district[which(habit_demanda_series_tract$district=="Sants - Montjuïc")] <- "Sants-Montjuïc"
+habit_demanda_series_tract$district[which(habit_demanda_series_tract$district=="Sants Montjuïc")] <- "Sants-Montjuïc"
 habit_demanda_series_tract$district[which(habit_demanda_series_tract$district=="Sarrià - Sant Gervasi")] <- "Sarrià-Sant Gervasi"
-habit_demanda_series_tract$district[which(habit_demanda_series_tract$district=="Horta - Guinardò")] <- "Horta-Guinardò"
-habit_demanda_series_tract$district[which(habit_demanda_series_tract$district=="Horta - Guinardó")] <- "Horta-Guinardò"
+habit_demanda_series_tract$district[which(habit_demanda_series_tract$district=="Sarrià Sant Gervasi")] <- "Sarrià-Sant Gervasi"
+habit_demanda_series_tract$district[which(habit_demanda_series_tract$district=="Horta - Guinardò")] <- "Horta-Guinardó"
+habit_demanda_series_tract$district[which(habit_demanda_series_tract$district=="Horta Guinardó")] <- "Horta-Guinardó"
+habit_demanda_series_tract$district[which(habit_demanda_series_tract$district=="Horta - Guinardó")] <- "Horta-Guinardó"
+habit_demanda_series_tract$district[which(habit_demanda_series_tract$district=="Horta Guinardò")] <- "Horta-Guinardó"
 habit_demanda_series_tract$district[which(habit_demanda_series_tract$district=="Sants Montjuïc")] <- "Sants-Montjuïc"
 habit_demanda_series_tract$district[which(habit_demanda_series_tract$district=="Sarrià Sant Gervasi")] <- "Sarrià-Sant Gervasi"
-habit_demanda_series_tract$district[which(habit_demanda_series_tract$district=="Horta Guinardó")] <- "Horta-Guinardò"
-
+habit_demanda_series_tract$district[which(habit_demanda_series_tract$district=="Horta-Guinardò")] <- "Horta-Guinardó"
 
 ##################################################################
 
 catalunya_noms <- data.frame(catalunya_noms$NOMMUNI, catalunya_noms$CODIMUNI)
 names(catalunya_noms)[c(1,2)] <- c("NOMMUNI", "CODIMUNI")
 
-habit_demanda_series_tract <- join(habit_demanda_series_tract, catalunya_noms, by = "NOMMUNI")
+habit_demanda_series_tract <- left_join(habit_demanda_series_tract, catalunya_noms, by = "NOMMUNI")
+count(habit_demanda_series_tract, "NOMMUNI")
 
-habit_demanda_series_tract <- habit_demanda_series_tract[!is.na(habit_demanda_series_tract$NOMMUNI),]
+habit_demanda_series_tract <- habit_demanda_series_tract[!is.na(habit_demanda_series_tract$municipality),]
 
 
 ##################################################################
@@ -225,8 +231,11 @@ leads_mensuals <- arrange(leads_mensuals, leads_mensuals)
 leads_mensuals_1 <- leads_mensuals
 
 leads_mensuals_1 <- leads_mensuals_1%>%
-  group_by(property_id, NOMMUNI, any, mes)%>%
+  group_by(property_id, NOMMUNI, mes, any)%>%
   filter(row_number()==n())
+
+leads_mensuals_1 <- leads_mensuals_1[order(leads_mensuals_1$leads_mensuals),]
+
 
 habit_demanda_series_tract <- merge(x=habit_demanda_series_tract, y=leads_mensuals_1, 
                              by.x = c("property_id","NOMMUNI", "mes", "any"),
@@ -234,8 +243,6 @@ habit_demanda_series_tract <- merge(x=habit_demanda_series_tract, y=leads_mensua
 
 ##################################################################
 
-na_habit_demanda_muni <- as.data.frame(is.na(habit_demanda_series_tract$municipality))
-na_habit_demanda_muni <- cbind(na_habit_demanda_muni, habit_demanda_series_tract$municipality)
 
 ##### Aggregating the data per month 
 habit_demanda_series_tract <- habit_demanda_series_tract%>%
