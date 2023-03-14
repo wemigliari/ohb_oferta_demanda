@@ -185,11 +185,15 @@ foto_ofer_b2020$NOMMUNI[which(foto_ofer_b2020$NOMMUNI=="l'Ametlla de Mar ")] <- 
 foto_ofer_b2020$NOMMUNI[which(foto_ofer_b2020$NOMMUNI=="Sant Carles de la Ràpita")] <- "la Ràpita"
 
 foto_ofer_b2020$district[which(foto_ofer_b2020$district=="Sants - Montjuïc")] <- "Sants-Montjuïc"
+foto_ofer_b2020$district[which(foto_ofer_b2020$district=="Sants Montjuïc")] <- "Sants-Montjuïc"
 foto_ofer_b2020$district[which(foto_ofer_b2020$district=="Sarrià - Sant Gervasi")] <- "Sarrià-Sant Gervasi"
+foto_ofer_b2020$district[which(foto_ofer_b2020$district=="Sarrià Sant Gervasi")] <- "Sarrià-Sant Gervasi"
 foto_ofer_b2020$district[which(foto_ofer_b2020$district=="Horta - Guinardò")] <- "Horta-Guinardò"
+foto_ofer_b2020$district[which(foto_ofer_b2020$district=="Horta Guinardó")] <- "Horta-Guinardò"
+foto_ofer_b2020$district[which(foto_ofer_b2020$district=="Horta - Guinardó")] <- "Horta-Guinardò"
+foto_ofer_b2020$district[which(foto_ofer_b2020$district=="Horta Guinardò")] <- "Horta-Guinardò"
 foto_ofer_b2020$district[which(foto_ofer_b2020$district=="Sants Montjuïc")] <- "Sants-Montjuïc"
 foto_ofer_b2020$district[which(foto_ofer_b2020$district=="Sarrià Sant Gervasi")] <- "Sarrià-Sant Gervasi"
-foto_ofer_b2020$district[which(foto_ofer_b2020$district=="Horta Guinardó")] <- "Horta-Guinardò"
 
 ########## Filtering Barcelona ########################
 foto_ofer_b2020 <- foto_ofer_b2020 %>% filter(NOMMUNI=="Barcelona")
@@ -222,22 +226,23 @@ mitjana_surface_o_dist <- aggregate(x = foto_ofer_b2020$surface,
                                     by = list(foto_ofer_b2020$property_id, 
                                               foto_ofer_b2020$district, 
                                               foto_ofer_b2020$mes),             
-                                    FUN = mean)                           
+                                    FUN = mean,round(mean(foto_ofer_b2020$surface), digits=2))                            
 
 names(mitjana_surface_o_dist)[1:4] <- c("property_id", "district", "mes", "mitjana_superf_o_mes")
 
-test111_20 <- merge(x=foto_ofer_b2020, y=mitjana_surface_o_dist, by.x=c("property_id","district", "mes"), 
+test111_20 <- merge(x=foto_ofer_b2020, y=mitjana_surface_o_dist, 
+                    by.x=c("property_id","district", "mes"), 
                     by.y=c("property_id","district", "mes"))
 
 ##################################################################
 ############## Mitjanes de preu
 ##################################################################
 
-mitjana_price_o_dist <- aggregate(x = test111_20$price,    
+mitjana_price_o_dist <- aggregate(x = foto_ofer_b2020$price,    
                                   by = list(foto_ofer_b2020$property_id, 
                                             foto_ofer_b2020$district, 
                                             foto_ofer_b2020$mes),             
-                                  FUN = mean)                           
+                                  FUN = mean, round(mean(foto_ofer_b2020$price), digits=2))                           
 
 names(mitjana_price_o_dist)[1:4] <- c("property_id", "district", "mes", "mitjana_price_o_dist_mes")
 
@@ -290,8 +295,8 @@ test11b_20_ld <- test11b_20_ld %>%
   mutate(ultima_data = date)
 test11b_20_ld <- test11b_20_ld[,c(1,2,3,5)]
 
-test111_20_pm_ud <- merge(x=test11a_20_fd, y=test11b_20_ld, by.x=c("property_id","district", "mes"), 
-                          by.y=c("property_id","district", "mes"))
+test111_20_pm_ud <- merge(x=test11a_20_fd, y=test11b_20_ld, by.x=c("property_id","district"), 
+                          by.y=c("property_id","district"))
 
 
 #Adding date posting
@@ -304,8 +309,8 @@ test11b_20_dp <- test11b_20_dp %>%
   mutate(date_posting_calcul = date_posting)
 test11b_20_dp <- test11b_20_dp[,c(1,2,3,5)]
 
-test111_20_pm_ud_dp <- merge(x=test111_20_pm_ud, y=test11b_20_dp, by.x=c("property_id","district", "mes"), 
-                             by.y=c("property_id","district", "mes"))
+test111_20_pm_ud_dp <- merge(x=test111_20_pm_ud, y=test11b_20_dp, by.x=c("property_id","district"), 
+                             by.y=c("property_id","district"))
 
 test111_20_pm_ud_dp <- data.frame(test111_20_pm_ud_dp$property_id, 
                                   test111_20_pm_ud_dp$district, 
@@ -373,11 +378,6 @@ test111_20$tipologia[which(test111_20$tipologia=="Casa-Chalet")] <- "Unifamiliar
 test111_20$tipologia[which(test111_20$tipologia=="Finca rústica")] <- "Unifamiliar"
 test111_20$tipologia[which(test111_20$tipologia=="Duplex")] <- "Plurifamiliar"
 
-test111_20$district[which(test111_20$district=="Sants Montjuïc")] <- "Sants-Montjuïc"
-test111_20$district[which(test111_20$district=="Sarrià Sant Gervasi")] <- "Sarrià-Sant Gervasi"
-test111_20$district[which(test111_20$district=="Horta Guinardó")] <- "Horta-Guinardò"
-test111_20$district[which(test111_20$district=="Horta - Guinardó")] <- "Horta-Guinardò"
-
 count(test111_20, "tipologia")
 
 ##################################################################
@@ -407,10 +407,13 @@ preu_mitjana_mes_2020 <- test111_20 %>%
 
 names(preu_mitjana_mes_2020)[c(4:6)] <- c("q1_dist", "q2_dist", "q3_dist")
 
-test_b2020_f <- left_join(test_b2020_f, preu_mitjana_mes_2020)%>%
-  distinct(property_id, district, mes, .keep_all =TRUE)
-test_b2020_f <- left_join(test_b2020_f, counting_dist_2020)%>%
-  distinct(property_id, district, mes, .keep_all =TRUE)
+test_b2020_f <- merge(test_b2020_f, preu_mitjana_mes_2020,
+                      by.x = c("district", "any", "mes"),
+                      by.y = c("district", "any", "mes"), .keep_all=TRUE)
+
+test_b2020_f <- merge(test_b2020_f, counting_dist_2020,
+                      by.x = c("district","mes"),
+                      by.y = c("district","mes"), .keep_all = TRUE)
 
 ####################
 
@@ -425,7 +428,6 @@ test_b2020_f$data_final <- (test_b2020_f$data1 %m+% months(1))
 
 which(test_b2020_f$date_posting > test_b2020_f$primera_data)
 which(is.na(test_b2020_f$date_posting))
-na_date <- as.data.frame(ddply(test_b2020_f, .(property_id), summarize, nNA=sum(is.na(date_posting_calcul))))
 
 test_b2020_f <- test_b2020_f%>%
   group_by(property_id, district)%>%
@@ -440,5 +442,4 @@ which(test_b2020_f$date_posting_calcul > test_b2020_f$primera_data)
 which(is.na(test_b2020_f$date_posting_calcul))
 149540709
 
-library(xlsx)
 write_csv(test_b2020_f, "/Users/wemigliari/Documents/Pós-Doutorado & Doutorado/Pós-Doc/Observatori_Metropolita/Dades/2020_Fotocasa_Oferta/tractament_foto_oferta_b2020.csv")
